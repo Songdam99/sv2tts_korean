@@ -5,13 +5,16 @@ The default is a set of ASCII characters that works well for English or text tha
 through Unidecode. For other data, you can modify _characters. See TRAINING_DATA.md for details.
 """
 # from . import cmudict
+from .korean import ALL_SYMBOLS, PAD, EOS
 
-_pad        = "_"
-_eos        = "~"
-_characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!\'\"(),-.:;? "
 
-# Prepend "@" to ARPAbet symbols to ensure uniqueness (some are the same as uppercase letters):
-#_arpabet = ["@' + s for s in cmudict.valid_symbols]
+# For english
+en_symbols = PAD+EOS+'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!\'(),-.:;? '  #<-For deployment(Because korean ALL_SYMBOLS follow this convention)
 
-# Export all symbols:
-symbols = [_pad, _eos] + list(_characters) #+ _arpabet
+symbols = ALL_SYMBOLS # for korean
+# 
+# # Prepend "@" to ARPAbet symbols to ensure uniqueness (some are the same as uppercase letters):
+# #_arpabet = ["@' + s for s in cmudict.valid_symbols]
+# 
+# # Export all symbols:
+# symbols = [PAD, EOS] + list(_characters) #+ _arpabet
