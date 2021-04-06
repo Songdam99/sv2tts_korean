@@ -15,6 +15,9 @@ import numpy as np
 from pathlib import Path
 import sys
 import time
+import dill
+
+
 
 
 def np_now(x: torch.Tensor): return x.detach().cpu().numpy()
@@ -143,10 +146,10 @@ def train(run_id: str, syn_dir: str, models_dir: str, save_every: int,
         for p in optimizer.param_groups:
             p["lr"] = lr
 
-        data_loader = DataLoader(dataset,
-                                 collate_fn=lambda batch: collate_synthesizer(batch, r, hparams),
+        data_loader = DataLoader(dataset, collate_fn=lambda batch: collate_synthesizer(batch, r, hparams),
                                  batch_size=batch_size,
-                                 num_workers=2,
+                                 num_workers=0, 
+                                 #num_wokrers=2, ## cannot use multiprocessing in Windows
                                  shuffle=True,
                                  pin_memory=True)
 
@@ -154,7 +157,7 @@ def train(run_id: str, syn_dir: str, models_dir: str, save_every: int,
         steps_per_epoch = np.ceil(total_iters / batch_size).astype(np.int32)
         epochs = np.ceil(training_steps / steps_per_epoch).astype(np.int32)
 
-        for epoch in range(1, epochs+1):
+        for epoch in range(1, 2):
             for i, (texts, mels, embeds, idx) in enumerate(data_loader, 1):
                 start_time = time.time()
 
