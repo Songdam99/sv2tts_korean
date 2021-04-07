@@ -42,7 +42,7 @@ hparams = HParams(
         tts_postnet_K = 5,
         tts_num_highways = 4,
         tts_dropout = 0.5,
-        tts_cleaner_names = ["english_cleaners"],
+        tts_cleaner_names = ["korean_cleaners"],
         tts_stop_threshold = -3.4,                  # Value below which audio generation ends.
                                                     # For example, for a range of [-4, 4], this
                                                     # will terminate the sequence at the first
@@ -54,10 +54,11 @@ hparams = HParams(
                         (2,  2e-4,  80_000,  12),   #
                         (2,  1e-4, 160_000,  12),   # r = reduction factor (# of mel frames
                         (2,  3e-5, 320_000,  12),   #     synthesized for each decoder iteration)
-                        (2,  1e-5, 640_000,  12)],  # lr = learning rate
+                        (2,  1e-5, 640_000,  12)
+                        ],                          # lr = learning rate
 
         tts_clip_grad_norm = 1.0,                   # clips the gradient norm to prevent explosion - set to None if not needed
-        tts_eval_interval = 500,                    # Number of steps between model evaluation (sample generation)
+        tts_eval_interval = -1,                    # Number of steps between model evaluation (sample generation)
                                                     # Set to -1 to generate after completing epoch, or 0 to disable
 
         tts_eval_num_samples = 1,                   # Makes this number of samples
