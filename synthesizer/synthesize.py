@@ -62,9 +62,9 @@ def run_synthesis(in_dir, out_dir, model_dir, hparams):
 
     dataset = SynthesizerDataset(metadata_fpath, mel_dir, embed_dir, hparams)
     data_loader = DataLoader(dataset,
-                             collate_fn=lambda batch: collate_synthesizer(batch, r),
+                             collate_fn=lambda batch: collate_synthesizer(batch, r,hparams),
                              batch_size=hparams.synthesis_batch_size,
-                             num_workers=2,
+                             num_workers=0, #Having an error(Can't pickle local object 'run_synthesis.<locals>.<lambda>') when training in Windows unless you set num_workers=0
                              shuffle=False,
                              pin_memory=True)
 
@@ -78,9 +78,9 @@ def run_synthesis(in_dir, out_dir, model_dir, hparams):
 
             # Parallelize model onto GPUS using workaround due to python bug
             if device.type == "cuda" and torch.cuda.device_count() > 1:
-                _, mels_out, _ = data_parallel_workaround(model, texts, mels, embeds)
+                _, mels_out, _,_ = data_parallel_workaround(model, texts, mels, embeds)
             else:
-                _, mels_out, _ = model(texts, mels, embeds)
+                _, mels_out, _,_ = model(texts, mels, embeds)
 
             for j, k in enumerate(idx):
                 # Note: outputs mel-spectrogram files and target ones have same names, just different folders
