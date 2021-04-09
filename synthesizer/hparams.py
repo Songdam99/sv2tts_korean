@@ -89,5 +89,5 @@ hparams = HParams(
         utterance_min_duration = 1.6,               # Duration in seconds below which utterances are discarded
         )
 
-def hparams_debug_string():
+def hparams_debug_string(hparams): 
     return str(hparams)
