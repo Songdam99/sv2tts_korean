@@ -78,9 +78,9 @@ def run_synthesis(in_dir, out_dir, model_dir, hparams):
 
             # Parallelize model onto GPUS using workaround due to python bug
             if device.type == "cuda" and torch.cuda.device_count() > 1:
-                _, mels_out, _,_ = data_parallel_workaround(model, texts, mels, embeds)
+                _, mels_out,_,_ = data_parallel_workaround(model, texts, mels, embeds)
             else:
-                _, mels_out, _,_ = model(texts, mels, embeds)
+                _,mels_out, _,_ = model(texts, mels, embeds)
 
             for j, k in enumerate(idx):
                 # Note: outputs mel-spectrogram files and target ones have same names, just different folders
