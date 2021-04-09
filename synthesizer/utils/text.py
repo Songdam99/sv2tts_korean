@@ -72,10 +72,10 @@ def text_to_sequence(text, cleaner_names):
 
 
 def sequence_to_text(sequence, hparams, skip_eos_and_pad=False, combine_jamo=False):
-    '''Converts a sequence of IDs back to a string'''
-    cleaner_names = [x.strip() for x in hparams.cleaners.split(',')]
-    if 'english_cleaners' in cleaner_names and isEn == False:
-        convert_to_en_symbols()
+    # '''Converts a sequence of IDs back to a string'''
+    # cleaner_names = [x.strip() for x in hparams.cleaners.split(',')]
+    # if 'english_cleaners' in cleaner_names and isEn == False:
+    #     convert_to_en_symbols()
 
     result = ''
     for symbol_id in sequence:
