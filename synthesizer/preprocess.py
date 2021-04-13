@@ -25,7 +25,7 @@ def preprocess_dataset(datasets_root: Path, out_dir: Path, n_processes: int,
     
     # Create a metadata file
     metadata_fpath = out_dir.joinpath("train.txt")
-    metadata_file = metadata_fpath.open("a" if skip_existing else "w", encoding="utf-8")
+    metadata_file = metadata_fpath.open("a" if skip_existing else "w", encoding="cp949")
 
     # Preprocess the dataset
     speaker_dirs = list(chain.from_iterable(input_dir.glob("*") for input_dir in input_dirs))
@@ -38,7 +38,7 @@ def preprocess_dataset(datasets_root: Path, out_dir: Path, n_processes: int,
     metadata_file.close()
 
     # Verify the contents of the metadata file
-    with metadata_fpath.open("r", encoding="utf-8") as metadata_file:
+    with metadata_fpath.open("r", encoding="cp949") as metadata_file:
         metadata = [line.split("|") for line in metadata_file]
     mel_frames = sum([int(m[4]) for m in metadata])
     timesteps = sum([int(m[3]) for m in metadata])
@@ -247,7 +247,7 @@ def create_embeddings(synthesizer_root: Path, encoder_model_fpath: Path, n_proce
     embed_dir.mkdir(exist_ok=True)
     
     # Gather the input wave filepath and the target output embed filepath
-    with metadata_fpath.open("r") as metadata_file:
+    with metadata_fpath.open("r",encoding='cp949') as metadata_file:
         metadata = [line.split("|") for line in metadata_file]
         fpaths = [(wav_dir.joinpath(m[0]), embed_dir.joinpath(m[2])) for m in metadata]
         
