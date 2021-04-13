@@ -5,7 +5,7 @@ from pathlib import Path
 from synthesizer.utils.text import text_to_sequence
 import nltk
 nltk.download('punkt')
-
+##
 
 class SynthesizerDataset(Dataset):
     def __init__(self, metadata_fpath: Path, mel_dir: Path, embed_dir: Path, hparams):

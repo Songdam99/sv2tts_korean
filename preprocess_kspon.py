@@ -8,27 +8,6 @@ from itertools import chain
 from tqdm import tqdm
 import re
 
-
-# def raw2wav(input_dirs):
-#     folders = list(chain.from_iterable(input_dir.glob("*") for input_dir in input_dirs))
-#
-#     for folder in tqdm(folders, "folders", len(folders), unit="folders"):
-#         for file in folder.glob("*"):
-#             audio_list = list()
-#             if str(file).endswith(".pcm") or str(file).endswith(".raw"):
-#                 audio_list.append(os.path.join(dataset_root, folder, file))
-#
-#             for audio in audio_list:
-#                 with open(audio, 'rb') as pcmfile:
-#                     pcmdata = pcmfile.read()
-#
-#                     audio_file = audio.split("\\")[-1]
-#
-#                     wavfile = wave.open(audio[:-4] + ".wav", 'wb')
-#                     wavfile.setparams((1, 2, 16000, 0, 'NONE', 'NONE'))
-#                     wavfile.writeframes(pcmdata)
-#                     wavfile.close()
-
 def preprocess_kspon(input_dirs):
     folders = list(chain.from_iterable(input_dir.glob("*") for input_dir in input_dirs))
 
@@ -42,25 +21,6 @@ def preprocess_kspon(input_dirs):
         for file in folder.glob("*"):
             existing_fnames.append(file)
 
-            # #Preprocessing Audio
-            # for file in folder.glob("*"):
-            #     audio_list = list()
-            #     if str(file).endswith(".pcm"):
-            #         audio_list.append(file)
-            
-            #     for audio in audio_list:
-            #         audio=str(audio)
-            #         wavfile = "".join(audio.split(".")[:-1]) + ".wav"
-            #         if Path(wavfile) in existing_fnames:
-            #             continue
-            #         else:
-            #             with open(audio, 'rb') as pcmfile:
-            #                 pcmdata = pcmfile.read()
-            
-            #                 wavfile = wave.open(wavfile, 'wb')
-            #                 wavfile.setparams((1, 2, 16000, 0, 'NONE', 'NONE'))
-            #                 wavfile.writeframes(pcmdata)
-            #                 wavfile.close()
 
             if str(file).endswith(".txt") and not str(file).endswith("alignment.txt"):
                 s = os.path.splitext(file)  # 확장자와 확장자 아닌부분
