@@ -15,7 +15,7 @@ I changed some codes to convert tensorflow model to pytorch model and fixed some
 
 
 ## Used dataset
--KSponspeech (https://aihub.or.kr/aidata/105)
+- KSponspeech (https://aihub.or.kr/aidata/105)
 
 Make sure that your datasets has text-audio pairs.
 
