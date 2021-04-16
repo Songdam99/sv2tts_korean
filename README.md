@@ -14,7 +14,7 @@ I changed some codes to convert tensorflow model to pytorch model and fixed some
 - Transfer Learning from Speaker Verification to Multispeaker Text-To-Speech Synthesis (https://arxiv.org/abs/1806.04558)
 
 
-## Used dataset
+## Used Dataset
 - KSponspeech (https://aihub.or.kr/aidata/105)
 
 Make sure that your datasets has text-audio pairs.
