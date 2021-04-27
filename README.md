@@ -4,7 +4,7 @@
 
 # Real-Time Korean Voice Cloning
 This repository is Korean version of sv2tts. The original model (which was developed by CorentinJ(https://github.com/CorentinJ/Real-Time-Voice-Cloning)) is based on English.
-To implement Korean speech on the model, I refer to tail95(https://github.com/tail95/Voice-Cloning) where he made korean preprocessing codes. 
+To implement Korean speech on the model, I refer to tail95(https://github.com/tail95/Voice-Cloning). 
 I changed some codes to improve convenience in preprocessing(audio and text) and training. Also I converted tensorflow model to pytorch model and fixed some errors.
 
 ## References
@@ -18,11 +18,3 @@ I changed some codes to improve convenience in preprocessing(audio and text) and
 - KSponspeech (https://aihub.or.kr/aidata/105)
 
 Make sure that your datasets has text-audio pairs.
-
-
-## How to train your own model.
-
-1. Install requirements
-- pip install -r requirements.txt
-
-2. run 
