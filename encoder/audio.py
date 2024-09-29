@@ -43,7 +43,7 @@ def preprocess_wav(fpath_or_wav: Union[str, Path, np.ndarray],
         wav = fpath_or_wav
     
     # Resample the wav if needed
-    if source_sr is not None and source_sr != sampling_rate:
+    if source_sr is not None and source_sr != sampling_rate and len(wav)>0:
         wav = librosa.resample(wav, source_sr, sampling_rate)
         
     # Apply the preprocessing: normalize volume and shorten long silences 
@@ -128,10 +128,15 @@ def trim_long_silences(wav):
     return wav[audio_mask == True]
 
 
-def normalize_volume(wav, target_dBFS, increase_only=False, decrease_only=False):
+def normalize_volume(wav, target_dBFS, increase_only=False, decrease_only=False, fpath_or_wav=None):
     if increase_only and decrease_only:
         raise ValueError("Both increase only and decrease only are set")
-    dBFS_change = target_dBFS - 10 * np.log10(np.mean(wav ** 2))
+    if np.mean(wav**2) > 0:
+        dBFS_change = target_dBFS - 10 * np.log10(np.mean(wav ** 2))
+    else:
+        print("Warning: Invalid audio data encountered. Array mean is zero.")
+        print(f'Invalid audio data path: {fpath_or_wav}')
+        return np.array([])
     if (dBFS_change < 0 and increase_only) or (dBFS_change > 0 and decrease_only):
         return wav
     return wav * (10 ** (dBFS_change / 20))
