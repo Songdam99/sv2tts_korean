@@ -31,6 +31,11 @@ def preprocess_wav(fpath_or_wav: Union[str, Path, np.ndarray],
     hyperparameters. If passing a filepath, the sampling rate will be automatically detected and 
     this argument will be ignored.
     """
+    # PCM preprocess
+    if str(fpath_or_wav)[-4:]=='.pcm':
+        with open(fpath_or_wav, 'rb') as f:
+            pcm_data = np.frombuffer(f.read(), dtype=np.int16)
+    
     # Load the wav from disk if needed
     if isinstance(fpath_or_wav, str) or isinstance(fpath_or_wav, Path):
         wav, source_sr = librosa.load(str(fpath_or_wav), sr=None)
@@ -50,14 +55,29 @@ def preprocess_wav(fpath_or_wav: Union[str, Path, np.ndarray],
     return wav
 
 
+# def wav_to_mel_spectrogram(wav):
+#     """
+#     Derives a mel spectrogram ready to be used by the encoder from a preprocessed audio waveform.
+#     Note: this not a log-mel spectrogram.
+#     """
+#     frames = librosa.feature.melspectrogram(
+#         wav,
+#         sampling_rate,
+#         n_fft=int(sampling_rate * mel_window_length / 1000),
+#         hop_length=int(sampling_rate * mel_window_step / 1000),
+#         n_mels=mel_n_channels
+#     )
+#     return frames.astype(np.float32).T
+
+
 def wav_to_mel_spectrogram(wav):
     """
     Derives a mel spectrogram ready to be used by the encoder from a preprocessed audio waveform.
     Note: this not a log-mel spectrogram.
     """
     frames = librosa.feature.melspectrogram(
-        wav,
-        sampling_rate,
+        y=wav, # changed row
+        sr=sampling_rate, # changed row
         n_fft=int(sampling_rate * mel_window_length / 1000),
         hop_length=int(sampling_rate * mel_window_step / 1000),
         n_mels=mel_n_channels

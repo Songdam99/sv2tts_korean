@@ -1,4 +1,4 @@
-from encoder.preprocess import preprocess_librispeech, preprocess_voxceleb1, preprocess_voxceleb2
+from encoder.preprocess import preprocess_librispeech, preprocess_voxceleb1, preprocess_voxceleb2, preprocess_multispeaker_tts
 from utils.argutils import print_args
 from pathlib import Path
 import argparse
@@ -32,7 +32,7 @@ if __name__ == "__main__":
                         default="librispeech_other,voxceleb1,voxceleb2", help=\
         "Comma-separated list of the name of the datasets you want to preprocess. Only the train "
         "set of these datasets will be used. Possible names: librispeech_other, voxceleb1, "
-        "voxceleb2.")
+        "voxceleb2, multispeaker_tts.")
     parser.add_argument("-s", "--skip_existing", action="store_true", help=\
         "Whether to skip existing output files with the same name. Useful if this script was "
         "interrupted.")
@@ -63,6 +63,7 @@ if __name__ == "__main__":
         "librispeech_other": preprocess_librispeech,
         "voxceleb1": preprocess_voxceleb1,
         "voxceleb2": preprocess_voxceleb2,
+        "multispeaker_tts": preprocess_multispeaker_tts,
     }
     args = vars(args)
     for dataset in args.pop("datasets"):

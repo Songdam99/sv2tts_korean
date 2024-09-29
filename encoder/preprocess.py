@@ -1,6 +1,6 @@
 from multiprocess.pool import ThreadPool
 from encoder.params_data import *
-from encoder.config import librispeech_datasets, anglophone_nationalites
+from encoder.config import *
 from datetime import datetime
 from encoder import audio
 from pathlib import Path
@@ -118,6 +118,23 @@ def _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir,
     print("Done preprocessing %s.\n" % dataset_name)
 
 
+def preprocess_multispeaker_tts(datasets_root: Path, out_dir: Path, skip_existing=False):
+    for dataset_name in multispeaker_tts_datasets["train"]:
+        print(f'dataset_name : {dataset_name}')
+        dataset_root, logger = _init_preprocess_dataset(dataset_name, datasets_root, out_dir)
+        print(f'dataset_root : {str(dataset_root)}')
+        if not datasets_root:
+            return
+        
+        wav_folders = set()
+        
+        for wav_file in dataset_root.glob('**/*.wav'):
+            wav_folders.add(wav_file.parent)
+        speaker_dirs = list(wav_folders)
+        _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir, "wav",
+                                 skip_existing, logger)
+
+        
 def preprocess_librispeech(datasets_root: Path, out_dir: Path, skip_existing=False):
     for dataset_name in librispeech_datasets["train"]["other"]:
         # Initialize the preprocessing

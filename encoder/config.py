@@ -36,7 +36,10 @@ voxceleb_datasets = {
         "test": ["VoxCeleb2/test_wav"]
     }
 }
-
+multispeaker_tts_datasets = {
+    "train": ["014.다화자 음성합성 데이터/01.데이터/1.Training"],
+    "valid": ["014.다화자 음성합성 데이터/01.데이터/2.Validation"]
+}
 other_datasets = [
     "LJSpeech-1.1",
     "VCTK-Corpus/wav48",
