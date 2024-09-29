@@ -44,11 +44,11 @@ def preprocess_wav(fpath_or_wav: Union[str, Path, np.ndarray],
     
     # Resample the wav if needed
     if source_sr is not None and source_sr != sampling_rate:
-        wav = librosa.resample(wav, source_sr, sampling_rate)
+        wav = librosa.resample(wav, orig_sr=source_sr, target_sr=sampling_rate)
         
     # Apply the preprocessing: normalize volume and shorten long silences 
     if normalize:
-        wav = normalize_volume(wav, audio_norm_target_dBFS, increase_only=True)
+        wav = normalize_volume(wav, audio_norm_target_dBFS, increase_only=True, fpath_or_wav=fpath_or_wav)
     if webrtcvad and trim_silence:
         wav = trim_long_silences(wav)
     
@@ -128,10 +128,19 @@ def trim_long_silences(wav):
     return wav[audio_mask == True]
 
 
-def normalize_volume(wav, target_dBFS, increase_only=False, decrease_only=False):
+def normalize_volume(wav, target_dBFS, increase_only=False, decrease_only=False, fpath_or_wav=None):
     if increase_only and decrease_only:
         raise ValueError("Both increase only and decrease only are set")
-    dBFS_change = target_dBFS - 10 * np.log10(np.mean(wav ** 2))
+    # 제로 분모 방지
+    if np.mean(wav ** 2) > 0:
+        dBFS_change = target_dBFS - 10 * np.log10(np.mean(wav ** 2))
+    else:
+         # 유효하지 않은 배열 경고 및 경로 출력
+        print("Warning: Invalid audio data encountered. Array mean is zero.")
+        print(f"Invalid audio data path: {fpath_or_wav}")  # fpath_or_wav를 받아오는 방법은 아래에서 설명
+        return wav  # 원래 wav를 그대로 반환하거나 다른 처리 방안을 선택할 수 있음
+        
     if (dBFS_change < 0 and increase_only) or (dBFS_change > 0 and decrease_only):
         return wav
     return wav * (10 ** (dBFS_change / 20))
+
