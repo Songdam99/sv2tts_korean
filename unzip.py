@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 # 압축 파일들이 있는 디렉토리 경로
-root = Path(r'C:\Users\otulp\Desktop\GraduateProject\AI 음성 데이터\014.다화자 음성합성 데이터\01.데이터\1.Training\원천데이터')
+root = Path(r'C:/Users/otulp/Desktop/GraduateProject/AI 음성 데이터/131.다국어 통·번역 낭독체 데이터/01-1.정식개방데이터/Training/02.라벨링데이터')
 
 # 압축 파일들을 순차적으로 압축 해제
 for zip_path in root.glob('*.zip'):

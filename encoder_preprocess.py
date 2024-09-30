@@ -64,6 +64,7 @@ if __name__ == "__main__":
         "voxceleb1": preprocess_voxceleb1,
         "voxceleb2": preprocess_voxceleb2,
         "multispeaker_tts": preprocess_multispeaker_tts,
+        "literature_recite": preprocess_multispeaker_tts,
     }
     args = vars(args)
     for dataset in args.pop("datasets"):
