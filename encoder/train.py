@@ -5,6 +5,7 @@ from encoder.model import SpeakerEncoder
 from utils.profiler import Profiler
 from pathlib import Path
 import torch
+from tqdm import tqdm
 
 def sync(device: torch.device):
     # For correct profiling (cuda operations are async)
@@ -17,6 +18,7 @@ def train(run_id: str, clean_data_root: Path, models_dir: Path, umap_every: int,
           no_visdom: bool):
     # Create a dataset and a dataloader
     dataset = SpeakerVerificationDataset(clean_data_root)
+
     loader = SpeakerVerificationDataLoader(
         dataset,
         speakers_per_batch,
@@ -28,6 +30,7 @@ def train(run_id: str, clean_data_root: Path, models_dir: Path, umap_every: int,
     # because the forward pass is faster on the GPU whereas the loss is often (depending on your
     # hyperparameters) faster on the CPU.
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
     # FIXME: currently, the gradient is None if loss_device is cuda
     loss_device = torch.device("cpu")
     
@@ -64,7 +67,7 @@ def train(run_id: str, clean_data_root: Path, models_dir: Path, umap_every: int,
     
     # Training loop
     profiler = Profiler(summarize_every=10, disabled=False)
-    for step, speaker_batch in enumerate(loader, init_step):
+    for step, speaker_batch in tqdm(enumerate(loader, init_step)):
         profiler.tick("Blocking, waiting for batch (threaded)")
         
         # Forward pass

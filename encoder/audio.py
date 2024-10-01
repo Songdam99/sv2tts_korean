@@ -146,3 +146,27 @@ def normalize_volume(wav, target_dBFS, increase_only=False, decrease_only=False,
         return wav
     return wav * (10 ** (dBFS_change / 20))
 
+
+def mel_spectrogram_to_wav(mel_spectrogram, sr, n_fft, hop_length):
+    """
+    Converts a mel spectrogram back to a waveform using Griffin-Lim algorithm.
+    
+    :param mel_spectrogram: Mel spectrogram to be converted.
+    :param sr: Sampling rate.
+    :param n_fft: Length of the FFT window.
+    :param hop_length: Number of samples between successive frames.
+    :param n_mels: Number of Mel bands.
+    :return: Reconstructed waveform.
+    """
+    # Inverse the mel filter bank
+    mel_to_linear = librosa.feature.inverse.mel_to_stft(
+        mel_spectrogram.T, sr=sr, n_fft=n_fft
+    )
+
+    # Use Griffin-Lim to approximate the original waveform from the linear spectrogram
+    wav = librosa.griffinlim(
+        mel_to_linear, n_iter=32, hop_length=hop_length, win_length=n_fft
+    )
+    
+    return wav
+

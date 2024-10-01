@@ -120,29 +120,41 @@ def _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir,
     print("Done preprocessing %s.\n" % dataset_name)
 
 
-def preprocess_literature_recite(datasets_root: Path, out_dir: Path, skip_existing=False):
-    mapping = {'TS_ko_1_1': 'TL_ko_1', 'TS_ko_1_2': 'TL_ko_2', 'TS_ko_2': 'TL_ko_2', 
+def preprocess_multilingual_recite(datasets_root: Path, out_dir: Path, skip_existing=False, mode='train'):
+    if mode == 'train':
+        mapping = {'TS_ko_1_1': 'TL_ko_1', 'TS_ko_1_2': 'TL_ko_1', 'TS_ko_2': 'TL_ko_2', 
                'TS_ko_3': 'TL_ko_3', 'TS_ko_5': 'TL_ko_5'}
+    elif mode == 'valid':
+        mapping = {'VS_ko_1': 'VL_ko_1', 'VS_ko_2': 'VL_ko_2', 'VS_ko_3': 'VL_ko_3', 'VS_ko_4': 'VL_ko_4'}
 
     def process_wav_file(args):
         wav_path, dataset_name = args
-        json_path = str(wav_path).replace(".wav", ".json")
+        json_path = str(wav_path).replace(".wav", ".json").replace("01.원천데이터", "02.라벨링데이터")
         for k in mapping.keys():
             if k in json_path:
                 json_path = json_path.replace(k, mapping[k])
                 break
 
         if not os.path.exists(json_path):
+            message = f'{wav_path}의 json path {json_path} 존재하지 않음\n'
+            print(message)
+            with open(log_path, 'a', encoding='utf-8') as log_file:
+                log_file.write(message)
             return
-        
-        with open(json_path, 'r', encoding='utf-8') as file:
+
+        with open(json_path, 'r', encoding='utf-8-sig') as file:
             data = json.load(file)
         
         speaker_id = data.get("typeInfo", {}).get("speaker", {}).get("speakerId")
         if not speaker_id:
+            message = f'speaker_id 존재하지 않음'
+            print(message)
+            with open(log_path, 'a', encoding='utf-8') as log_file:
+                log_file.write(message)
             return
 
-        speaker_out_dir = out_dir.joinpath(dataset_name, speaker_id)
+        dataset_name = dataset_name.replace("/", "_")
+        speaker_out_dir = out_dir.joinpath(dataset_name+'_'+speaker_id)
         speaker_out_dir.mkdir(exist_ok=True, parents=True)
 
         # Load and preprocess the waveform
@@ -158,7 +170,9 @@ def preprocess_literature_recite(datasets_root: Path, out_dir: Path, skip_existi
         out_fpath = speaker_out_dir.joinpath(os.path.basename(str(wav_path)).replace('.wav', '.npy'))
         np.save(out_fpath, frames)
 
-    for dataset_name in literature_recite_datsets['train']:
+    log_path = out_dir.joinpath("multilingual_recite_log.txt")
+    
+    for dataset_name in multilingual_recite_datsets[mode]:
         print(f'dataset_name : {dataset_name}')
         dataset_root, logger = _init_preprocess_dataset(dataset_name, datasets_root, out_dir)
         print(f'dataset_root : {str(dataset_root)}')

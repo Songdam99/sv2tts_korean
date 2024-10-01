@@ -1,12 +1,16 @@
-from encoder.preprocess import preprocess_librispeech, preprocess_voxceleb1, preprocess_voxceleb2, preprocess_multispeaker_tts
+from encoder.preprocess import preprocess_librispeech, preprocess_voxceleb1, preprocess_voxceleb2, preprocess_multispeaker_tts, preprocess_multilingual_recite
 from utils.argutils import print_args
 from pathlib import Path
 import argparse
+import numpy as np
+from encoder.audio import mel_spectrogram_to_wav
+import librosa
+import soundfile as sf
 
 if __name__ == "__main__":
     class MyFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
         pass
-    
+   
     parser = argparse.ArgumentParser(
         description="Preprocesses audio files from datasets, encodes them as mel spectrograms and "
                     "writes them to the disk. This will allow you to train the encoder. The "
@@ -32,7 +36,7 @@ if __name__ == "__main__":
                         default="librispeech_other,voxceleb1,voxceleb2", help=\
         "Comma-separated list of the name of the datasets you want to preprocess. Only the train "
         "set of these datasets will be used. Possible names: librispeech_other, voxceleb1, "
-        "voxceleb2, multispeaker_tts.")
+        "voxceleb2, multispeaker_tts, literature_recite.")
     parser.add_argument("-s", "--skip_existing", action="store_true", help=\
         "Whether to skip existing output files with the same name. Useful if this script was "
         "interrupted.")
@@ -64,9 +68,9 @@ if __name__ == "__main__":
         "voxceleb1": preprocess_voxceleb1,
         "voxceleb2": preprocess_voxceleb2,
         "multispeaker_tts": preprocess_multispeaker_tts,
-        "literature_recite": preprocess_multispeaker_tts,
+        "multilingual_recite": preprocess_multilingual_recite,
     }
     args = vars(args)
     for dataset in args.pop("datasets"):
         print("Preprocessing %s" % dataset)
-        preprocess_func[dataset](**args)
+        preprocess_func[dataset](**args, mode='valid')
