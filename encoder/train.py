@@ -20,6 +20,7 @@ def train(run_id: str, clean_data_root: Path, models_dir: Path, umap_every: int,
           no_visdom: bool):
     # Create a dataset and a dataloader
     dataset = SpeakerVerificationDataset(clean_data_root)
+
     loader = SpeakerVerificationDataLoader(
         dataset,
         speakers_per_batch,

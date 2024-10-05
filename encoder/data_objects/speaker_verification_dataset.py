@@ -10,10 +10,13 @@ from pathlib import Path
 class SpeakerVerificationDataset(Dataset):
     def __init__(self, datasets_root: Path):
         self.root = datasets_root
+        print(f'self.root : {self.root}')
         speaker_dirs = [f for f in self.root.glob("*") if f.is_dir()]
         if len(speaker_dirs) == 0:
             raise Exception("No speakers found. Make sure you are pointing to the directory "
                             "containing all preprocessed speaker directories.")
+        print(f'num speaker : {len(speaker_dirs)}')
+        print(f'expected data total duration : {3.9*len(speaker_dirs)} sec')
         self.speakers = [Speaker(speaker_dir) for speaker_dir in speaker_dirs]
         self.speaker_cycler = RandomCycler(self.speakers)
 
