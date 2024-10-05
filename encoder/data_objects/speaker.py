@@ -1,6 +1,8 @@
 from encoder.data_objects.random_cycler import RandomCycler
 from encoder.data_objects.utterance import Utterance
 from pathlib import Path
+import os
+from pathlib import Path
 
 # Contains the set of utterances of a single speaker
 class Speaker:
@@ -10,12 +12,45 @@ class Speaker:
         self.utterances = None
         self.utterance_cycler = None
         
+        
+
     def _load_utterances(self):
-        with self.root.joinpath("_sources.txt").open("r") as sources_file:
-            sources = [l.split(",") for l in sources_file]
+        sources_file_path = self.root.joinpath("_sources.txt")
+        
+        # Check if _sources.txt exists
+        if not sources_file_path.exists():
+            print(f"File not found: {sources_file_path}")
+            return  # Exit the method if the file does not exist
+        
+        with sources_file_path.open("r", encoding='utf-8') as sources_file:
+            sources = []
+            for line in sources_file:
+                line = line.strip()
+                if line:
+                    # Split only on the first comma
+                    parts = line.split(",", 1)  # Limit the split to 1 occurrence 낭독, 낭송에서 에러남ㅋ
+                    if len(parts) == 2:  # Ensure there are exactly 2 parts
+                        sources.append(parts)
+                    else:
+                        print(f"Skipping invalid line in {sources_file_path}: {line}")  # Log invalid line
+                else:
+                    print(f"Skipping empty line in {sources_file_path}")  # Log empty line
+        
+        if not sources:
+            print(f"No valid entries found in {sources_file_path}")
+            return  # Exit if no valid sources are found
+
         sources = {frames_fname: wave_fpath for frames_fname, wave_fpath in sources}
         self.utterances = [Utterance(self.root.joinpath(f), w) for f, w in sources.items()]
         self.utterance_cycler = RandomCycler(self.utterances)
+
+
+    # def _load_utterances(self):
+    #     with self.root.joinpath("_sources.txt").open("r", encoding='utf-8') as sources_file:
+    #         sources = [l.split(",") for l in sources_file]
+    #     sources = {frames_fname: wave_fpath for frames_fname, wave_fpath in sources}
+    #     self.utterances = [Utterance(self.root.joinpath(f), w) for f, w in sources.items()]
+    #     self.utterance_cycler = RandomCycler(self.utterances)
                
     def random_partial(self, count, n_frames):
         """
