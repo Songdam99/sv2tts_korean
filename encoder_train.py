@@ -2,6 +2,9 @@ from utils.argutils import print_args
 from encoder.train import train
 from pathlib import Path
 import argparse
+import wandb
+import time
+
 
 
 if __name__ == "__main__":
@@ -17,6 +20,8 @@ if __name__ == "__main__":
     parser.add_argument("clean_data_root", type=Path, help= \
         "Path to the output directory of encoder_preprocess.py. If you left the default "
         "output directory when preprocessing, it should be <datasets_root>/SV2TTS/encoder/.")
+    parser.add_argument("validation_data_root", type=Path, help= \
+        "Path to the validation directory of encoder_preprocess.py.")
     parser.add_argument("-m", "--models_dir", type=Path, default="encoder/saved_models/", help=\
         "Path to the output directory that will contain the saved model weights, as well as "
         "backups of those weights and plots generated during training.")
@@ -43,5 +48,14 @@ if __name__ == "__main__":
     
     # Run the training
     print_args(args, parser)
+    
+    wandb.login(key='392761bb11c106263e70dde71f1875f69c63f0af')
+    wandb.init(project='Narrify')
+    now = time.localtime()
+    formatted_time = time.strftime('%Y%m%d_%H%M%S', now)
+    model_name = f"SV2TTS_kor_len=1e8_b=64_train-sight=150_valid-sight=50_valid-every-7500_tolerance=7"
+    wandb.run.name = f'{model_name}_' + formatted_time
+    wandb.config.update(args)
+    
     train(**vars(args))
     

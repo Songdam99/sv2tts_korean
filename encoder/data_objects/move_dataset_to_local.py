@@ -2,7 +2,7 @@ import os
 import numpy as np
 import shutil
 
-def copy_npy_files(root_dir: str, target_dir: str):
+def copy_npy_files_with_minimum(root_dir: str, target_dir: str, min_files: int = 50, max_files: int = 50):
     if not os.path.isdir(root_dir):
         print(f"Directory does not exist: {root_dir}")
         return
@@ -17,28 +17,31 @@ def copy_npy_files(root_dir: str, target_dir: str):
     for speaker_folder in os.listdir(root_dir):
         folder_path = os.path.join(root_dir, speaker_folder)
         if os.path.isdir(folder_path):
-            checked_speakers += 1
-            print(f"Checking in speaker folder: {speaker_folder} ({checked_speakers}/{total_speakers})")
             npy_files = [file for file in os.listdir(folder_path) if file.endswith('.npy')]
 
-            # Create a new folder for the speaker in the target directory
-            speaker_target_folder = os.path.join(target_dir, speaker_folder)
-            os.makedirs(speaker_target_folder, exist_ok=True)
+            # Check if the speaker has at least `min_files` .npy files
+            if len(npy_files) >= min_files:
+                checked_speakers += 1
+                print(f"Checking in speaker folder: {speaker_folder} ({checked_speakers}/{total_speakers})")
 
-            # Limit to maximum 150 files
-            total_copied_files = 0  # Counter for copied files for the current speaker
-            for npy_file in npy_files[:150]:
-                file_path = os.path.join(folder_path, npy_file)
-                # Copy the file to the speaker's target directory
-                shutil.copy(file_path, os.path.join(speaker_target_folder, npy_file))
-                total_copied_files += 1
+                # Create a new folder for the speaker in the target directory
+                speaker_target_folder = os.path.join(target_dir, speaker_folder)
+                os.makedirs(speaker_target_folder, exist_ok=True)
 
-            print(f"Total .npy files copied for {speaker_folder}: {total_copied_files}")
+                # Limit to maximum `max_files`
+                total_copied_files = 0  # Counter for copied files for the current speaker
+                for npy_file in npy_files[:max_files]:
+                    file_path = os.path.join(folder_path, npy_file)
+                    # Copy the file to the speaker's target directory
+                    shutil.copy(file_path, os.path.join(speaker_target_folder, npy_file))
+                    total_copied_files += 1
 
-            # 현재 화자 복사 완료 후 진행 상황 출력 (npy_file 이름 생략)
-            print(f"Finished copying files for speaker {checked_speakers}/{total_speakers}.")
+                print(f"Total .npy files copied for {speaker_folder}: {total_copied_files}")
+
+                # 현재 화자 복사 완료 후 진행 상황 출력
+                print(f"Finished copying files for speaker {checked_speakers}/{total_speakers}.")
 
     print("File copying completed.")
 
 # Usage
-copy_npy_files("D:\\encoder", "C:\\Users\\s_jinwoo0302\\Desktop\\npy_over150")
+copy_npy_files_with_minimum("D:\\npy_under150", "C:\\Users\\s_jinwoo0302\\Desktop\\validation_npy50")
