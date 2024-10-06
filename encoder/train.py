@@ -1,5 +1,6 @@
 from encoder.visualizations import Visualizations
 from encoder.data_objects import SpeakerVerificationDataLoader, SpeakerVerificationDataset
+from encoder.data_objects.speaker_verification_validation_dataset import SpeakerValidationDataset, SpeakerValidationDataLoader
 from encoder.params_model import *
 from encoder.model import SpeakerEncoder
 from utils.profiler import Profiler
@@ -16,14 +17,17 @@ def sync(device: torch.device):
     if device.type == "cuda":
         torch.cuda.synchronize(device)
 
-def validate(model, validation_loader, device):
+def validate(model, validation_loader, device, loss_device):
     model.eval()  # Validation 모드로 전환
     total_loss = 0
     total_eer = 0
     num_batches = 0
 
     with torch.no_grad():
+        print("Validation Loader Info:")
+        print(f"Number of batches: {len(validation_loader)}")
         for speaker_batch in validation_loader:
+            print(speaker_batch.data.shape)
             inputs = torch.from_numpy(speaker_batch.data).to(device)
             sync(device)
             embeds = model(inputs)
@@ -31,7 +35,7 @@ def validate(model, validation_loader, device):
             loss, eer = model.loss(embeds_loss)
             
             total_loss += loss.item()
-            total_eer += eer.item()
+            total_eer += eer
             num_batches += 1
 
     avg_loss = total_loss / num_batches
@@ -44,7 +48,7 @@ def train(run_id: str, clean_data_root: Path, validation_data_root: Path, models
     
     # Create datasets and dataloaders
     train_dataset = SpeakerVerificationDataset(clean_data_root)
-    validation_dataset = SpeakerVerificationDataset(validation_data_root)
+    validation_dataset = SpeakerValidationDataset(validation_data_root)
 
     train_loader = SpeakerVerificationDataLoader(
         train_dataset,
@@ -53,11 +57,11 @@ def train(run_id: str, clean_data_root: Path, validation_data_root: Path, models
         num_workers=6,  # CPU 코어 수에 맞게 조정
     )
 
-    validation_loader = SpeakerVerificationDataLoader(
+    validation_loader = SpeakerValidationDataLoader(
         validation_dataset,
         speakers_per_batch,
         utterances_per_speaker,
-        num_workers=6,  # CPU 코어 수에 맞게 조정
+        num_workers=0,  # CPU 코어 수에 맞게 조정
     )
 
     # Setup the device on which to run the forward pass and the loss
@@ -100,7 +104,7 @@ def train(run_id: str, clean_data_root: Path, validation_data_root: Path, models
     vis.log_implementation({"Device": device_name})
         
     # Training loop
-    profiler = Profiler(summarize_every=10, disabled=False)
+    profiler = Profiler(summarize_every=500, disabled=False)
 
     total_steps = len(train_loader)  # 총 스텝 수
     patience = 7  # 조기 종료를 위한 허용 스텝 수
@@ -125,7 +129,7 @@ def train(run_id: str, clean_data_root: Path, validation_data_root: Path, models
 
             # Backward pass
             model.zero_grad()
-            print(f"Loss before backward: {loss.item()}")
+            # print(f"Loss before backward: {loss.item()}")
             loss.backward()
 
             # Print the loss gradients after backward
@@ -169,9 +173,18 @@ def train(run_id: str, clean_data_root: Path, validation_data_root: Path, models
                     "optimizer_state": optimizer.state_dict(),
                 }, backup_fpath)
                 
+            # Log training loss and EER every 7500 steps
+            if step % 7500 == 0 and step != init_step:
+                wandb.log({'train_loss': loss.item(), 'train_eer': eer}, step=step)
+            
+           
             # Validation every 7500 steps
             if step % 7500 == 0:
-                val_loss, val_eer = validate(model, validation_loader, device)
+                start_time=time.time()
+                val_loss, val_eer = validate(model, validation_loader, device, loss_device)
+                end_time=time.time()
+                print(f"Validation Time: {end_time - start_time:.2f} seconds")  # 소요 시간 출력
+
                 wandb.log({'val_loss': val_loss, 'val_eer': val_eer}, step=step)
                 print(f"Validation Loss: {val_loss}, Validation EER: {val_eer}")
 
@@ -185,6 +198,9 @@ def train(run_id: str, clean_data_root: Path, validation_data_root: Path, models
                 if num_bad_epochs >= patience:
                     print("Early stopping triggered.")
                     break
+
+                model.train()
+            
             
             profiler.tick("Extras (visualizations, saving)")
             pbar.update(1)  # tqdm 진행 표시 업데이트
