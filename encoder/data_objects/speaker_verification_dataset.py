@@ -37,7 +37,7 @@ class SpeakerVerificationDataset(Dataset):
 class SpeakerVerificationDataLoader(DataLoader):
     def __init__(self, dataset, speakers_per_batch, utterances_per_speaker, sampler=None, 
                  batch_sampler=None, num_workers=0, pin_memory=False, timeout=0, 
-                 worker_init_fn=None):
+                 worker_init_fn=None, prefetch_factor=2):
         self.utterances_per_speaker = utterances_per_speaker
 
         super().__init__(
@@ -51,7 +51,8 @@ class SpeakerVerificationDataLoader(DataLoader):
             pin_memory=pin_memory, 
             drop_last=False, 
             timeout=timeout, 
-            worker_init_fn=worker_init_fn
+            worker_init_fn=worker_init_fn,
+            prefetch_factor=prefetch_factor,  # 여기에서 prefetch_factor 설정
         )
 
     def collate(self, speakers):

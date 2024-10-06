@@ -7,6 +7,7 @@ from pathlib import Path
 import torch
 from tqdm import tqdm
 import time  # time 모듈 추가
+import os
 
 
 def sync(device: torch.device):
@@ -25,7 +26,7 @@ def train(run_id: str, clean_data_root: Path, models_dir: Path, umap_every: int,
         dataset,
         speakers_per_batch,
         utterances_per_speaker,
-        num_workers=8,
+        num_workers=6,  # CPU 코어 수에 맞게 조정
     )
     
     # Setup the device on which to run the forward pass and the loss. These can be different, 
@@ -34,11 +35,18 @@ def train(run_id: str, clean_data_root: Path, models_dir: Path, umap_every: int,
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")    
     # FIXME: currently, the gradient is None if loss_device is cuda
-    loss_device = torch.device("cpu")
-    
+    # loss_device = torch.device("cpu")
+    loss_device = torch.device("cuda") # 한번 해보지 뭐
+    print(f"Using loss_device: {loss_device}")    
+        
     # Create the model and the optimizer
     model = SpeakerEncoder(device, loss_device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate_init)
+    
+    # Check the device of each parameter in the model
+    for name, param in model.named_parameters():
+        print(f"{name}: {param.device}")  # Add this line to check parameter devices
+    
     init_step = 1
     
     # Configure file path for the model
@@ -81,6 +89,7 @@ def train(run_id: str, clean_data_root: Path, models_dir: Path, umap_every: int,
             
             # Forward pass
             inputs = torch.from_numpy(speaker_batch.data).to(device)
+            print(inputs.shape)
             sync(device)
             profiler.tick("Data to %s" % device)
             embeds = model(inputs)
@@ -93,8 +102,17 @@ def train(run_id: str, clean_data_root: Path, models_dir: Path, umap_every: int,
 
             # Backward pass
             model.zero_grad()
+            
+
+            # Print the loss before backward
+            print(f"Loss before backward: {loss.item()}")
             loss.backward()
-            profiler.tick("Backward pass")
+
+            # Print the loss gradients after backward
+            for name, param in model.named_parameters():
+                if param.grad is None:
+                    print(f"Gradient for {name} is None.")
+
             model.do_gradient_ops()
             optimizer.step()
             profiler.tick("Parameter update")

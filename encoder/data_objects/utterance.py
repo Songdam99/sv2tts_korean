@@ -7,7 +7,11 @@ class Utterance:
         self.wave_fpath = wave_fpath
         
     def get_frames(self):
-        return np.load(self.frames_fpath)
+        try:
+            return np.load(self.frames_fpath)
+        except OSError as e:
+            print(f"Error loading frames from {self.frames_fpath}: {e}")
+            raise  # Re-raise to handle it higher up if necessary
 
     def random_partial(self, n_frames):
         """

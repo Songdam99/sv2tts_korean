@@ -23,20 +23,39 @@ class SpeakerEncoder(nn.Module):
                                 out_features=model_embedding_size).to(device)
         self.relu = torch.nn.ReLU().to(device)
         
+        
         # Cosine similarity scaling (with fixed initial parameter values)
         self.similarity_weight = nn.Parameter(torch.tensor([10.])).to(loss_device)
+        self.similarity_weight.retain_grad()  # Add this line        
         self.similarity_bias = nn.Parameter(torch.tensor([-5.])).to(loss_device)
+        self.similarity_bias.retain_grad()  # 여기에서 수정합니다.
 
         # Loss
         self.loss_fn = nn.CrossEntropyLoss().to(loss_device)
         
     def do_gradient_ops(self):
         # Gradient scale
-        self.similarity_weight.grad *= 0.01
-        self.similarity_bias.grad *= 0.01
+        if self.similarity_weight.grad is not None:
+            self.similarity_weight.grad *= 0.01
+        else:
+            print("Warning: similarity_weight.grad is None.")
             
+        if self.similarity_bias.grad is not None:
+            self.similarity_bias.grad *= 0.01
+        else:
+            print("Warning: similarity_bias.grad is None.")
+        
         # Gradient clipping
         clip_grad_norm_(self.parameters(), 3, norm_type=2)
+
+        
+    # def do_gradient_ops(self):
+    #     # Gradient scale
+    #     self.similarity_weight.grad *= 0.01
+    #     self.similarity_bias.grad *= 0.01
+            
+    #     # Gradient clipping
+    #     clip_grad_norm_(self.parameters(), 3, norm_type=2)
     
     def forward(self, utterances, hidden_init=None):
         """
