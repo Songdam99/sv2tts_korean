@@ -27,7 +27,7 @@ def validate(model, validation_loader, device, loss_device):
         print("Validation Loader Info:")
         print(f"Number of batches: {len(validation_loader)}")
         for speaker_batch in validation_loader:
-            print(speaker_batch.data.shape)
+            # print(speaker_batch.data.shape)
             inputs = torch.from_numpy(speaker_batch.data).to(device)
             sync(device)
             embeds = model(inputs)
