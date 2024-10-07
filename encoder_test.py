@@ -5,7 +5,6 @@ from tqdm import tqdm
 from encoder.params_model import *
 from encoder.data_objects.speaker_verification_validation_dataset import SpeakerValidationDataset, SpeakerValidationDataLoader
 from encoder.model import SpeakerEncoder
-# from encoder.tail95_models import SpeakerEncoder
 
 def sync(device: torch.device):
     # For correct profiling (cuda operations are async)
@@ -23,7 +22,8 @@ def test(model, test_loader, device, loss_device):
         print(f"Number of batches: {len(test_loader)}")
         for speaker_batch in tqdm(test_loader):
             inputs = torch.from_numpy(speaker_batch.data).to(device)
-            print(inputs.shape)
+            if inputs.shape[0] != speakers_per_batch * utterances_per_speaker:
+                break
             sync(device)
             embeds = model(inputs)
             embeds_loss = embeds.view((speakers_per_batch, utterances_per_speaker, -1)).to(loss_device)
@@ -50,7 +50,7 @@ if __name__=="__main__":
         "backups of those weights and plots generated during training.")
     parser.add_argument("--model_name", type=str, help=\
         "model file name. ex) tail95_encoder.pt => --model_name tail95_encoder")
-    parser.add_argument("-s", "--sight_range", type=int, help=\
+    parser.add_argument("-s", "--sight_range", type=int, required=True, help=\
         "In test speaker folder, the number of folders that dataloader can see.")
     args = parser.parse_args()
     
@@ -67,8 +67,12 @@ if __name__=="__main__":
     loss_device = torch.device("cuda") 
     print(f"Using loss_device: {loss_device}")    
     
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # 모델 객체 생성
     model = SpeakerEncoder(device, loss_device)
-    
+    # print(f'model객체의 state_dict key : {model.state_dict().keys()}')
+    # print(f"model객체 weight 값 : {model.state_dict()['similarity_weight']}")
     args.model_name = args.model_name + ".pt"
     state_fpath = args.models_dir.joinpath(args.model_name)
     if state_fpath.exists():
@@ -76,7 +80,19 @@ if __name__=="__main__":
         checkpoint = torch.load(state_fpath)
         init_step = checkpoint["step"]
         print(f"init_step: {init_step}")
+        # print(f'pretrained의 state_dict key : {checkpoint["model_state"].keys()}')
         model.load_state_dict(checkpoint["model_state"])
+        # model의 state_dict의 모든 키를 출력하여 확인
+        print(f"model의 state_dict 키들: {model.state_dict().keys()}")
+        # 존재하는 파라미터 중 하나를 출력
+        if 'similarity_weight' in model.state_dict():
+            print(f"model객체 weight 값: {model.state_dict()['similarity_weight']}")
+        else:
+            print("similarity_weight는 model state_dict에 존재하지 않습니다.")
+        if 'similarity_bias' in model.state_dict():
+            print(f"model객체 weight 값: {model.state_dict()['similarity_bias']}")
+        else:
+            print("similarity_bias는 model state_dict에 존재하지 않습니다.")
     else:
         print("No model \"%s\" found, starting training from scratch." % args.model_name)
         

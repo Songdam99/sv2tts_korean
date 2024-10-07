@@ -76,3 +76,4 @@ class Speaker:
         a = [(u,) + u.random_partial(n_frames) for u in utterances]
 
         return a
+

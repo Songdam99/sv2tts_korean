@@ -6,8 +6,9 @@ from torch.utils.data import Dataset, DataLoader
 from pathlib import Path
 
 class SpeakerValidationDataset(Dataset):
-    def __init__(self, datasets_root: Path):
+    def __init__(self, datasets_root: Path, sight_range=450):
         self.root = datasets_root
+        self.sight_range = sight_range
         print(f'self.root : {self.root}')
         speaker_dirs = [f for f in self.root.glob("*") if f.is_dir()]
         
@@ -19,12 +20,12 @@ class SpeakerValidationDataset(Dataset):
         # print(f'expected data total duration : {3.9*len(speaker_dirs)} sec')
         
         # 각 화자에 대한 Speaker 객체를 생성
-        self.speakers = [Speaker(speaker_dir) for speaker_dir in speaker_dirs]
+        self.speakers = [Speaker(speaker_dir, sight_range) for speaker_dir in speaker_dirs]
         self.len_speakers=len(speaker_dirs)
         self.speaker_cycler = RandomCycler(self.speakers)
         
     def __len__(self):
-        return self.len_speakers  # 데이터셋의 총 발화 수를 반환
+        return self.len_speakers
     
     def __getitem__(self, index):
         return next(self.speaker_cycler)  # 다음 화자 배치를 반환
