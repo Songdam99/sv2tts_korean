@@ -1,0 +1,50 @@
+_wandb:
+    value:
+        cli_version: 0.18.3
+        m: []
+        python_version: 3.9.20
+        t:
+            "1":
+                - 1
+                - 5
+                - 53
+                - 55
+            "2":
+                - 1
+                - 5
+                - 53
+                - 55
+            "3":
+                - 17
+                - 23
+                - 55
+                - 61
+            "4": 3.9.20
+            "5": 0.18.3
+            "8":
+                - 3
+                - 5
+            "12": 0.18.3
+            "13": windows-amd64
+backup_every:
+    value: 7500
+clean_data_root:
+    value: C:\Users\s_jinwoo0302\Desktop\train_npy150
+force_restart:
+    value: false
+models_dir:
+    value: C:\Users\s_jinwoo0302\Desktop\GraduateProject\sv2tts_korean\encoder\saved_models
+no_visdom:
+    value: false
+run_id:
+    value: my_model
+save_every:
+    value: 7500
+umap_every:
+    value: 7500
+validation_data_root:
+    value: C:\Users\s_jinwoo0302\Desktop\validation_npy50
+vis_every:
+    value: 1000
+visdom_server:
+    value: http://localhost

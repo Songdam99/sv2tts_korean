@@ -1,15 +1,10 @@
 import os
 import matplotlib.pyplot as plt
-import shutil
 
-def check_npy_file_counts_and_plot_histogram(root_dir: str, target_dir: str):
+def check_npy_file_counts_and_plot_histogram(root_dir: str):
     if not os.path.isdir(root_dir):
         print(f"Directory does not exist: {root_dir}")
         return
-
-    # Create target directory if it doesn't exist
-    if not os.path.exists(target_dir):
-        os.makedirs(target_dir)
 
     # Print initial number of speaker folders
     initial_speaker_count = sum(1 for _ in os.listdir(root_dir) if os.path.isdir(os.path.join(root_dir, _)))
@@ -18,7 +13,15 @@ def check_npy_file_counts_and_plot_histogram(root_dir: str, target_dir: str):
     speaker_counts = {}
     total_speakers = initial_speaker_count
     checked_speakers = 0
-    speakers_with_150_or_more = 0  # Counter for speakers with 150 or more .npy files
+
+    # Counters for different thresholds
+    speakers_with_150_or_more = 0
+    speakers_with_200_or_more = 0
+    speakers_with_250_or_more = 0
+    speakers_with_300_or_more = 0
+    speakers_with_350_or_more = 0
+    speakers_with_400_or_more = 0
+    speakers_with_450_or_more = 0
 
     for speaker_folder in os.listdir(root_dir):
         folder_path = os.path.join(root_dir, speaker_folder)
@@ -28,20 +31,35 @@ def check_npy_file_counts_and_plot_histogram(root_dir: str, target_dir: str):
             npy_file_count = sum(1 for file in os.listdir(folder_path) if file.endswith('.npy'))
             speaker_counts[npy_file_count] = speaker_counts.get(npy_file_count, 0) + 1
             
-            if npy_file_count < 150:  # Check if .npy count is less than 150
-                # Move the folder to the target directory
-                shutil.move(folder_path, os.path.join(target_dir, speaker_folder))
-                print(f"Moved {speaker_folder} with {npy_file_count} .npy files to {target_dir}.")
-            else:
+            # Count speakers for each threshold
+            if npy_file_count >= 150:
                 speakers_with_150_or_more += 1
+            if npy_file_count >= 200:
+                speakers_with_200_or_more += 1
+            if npy_file_count >= 250:
+                speakers_with_250_or_more += 1
+            if npy_file_count >= 300:
+                speakers_with_300_or_more += 1
+            if npy_file_count >= 350:
+                speakers_with_350_or_more += 1
+            if npy_file_count >= 400:
+                speakers_with_400_or_more += 1
+            if npy_file_count >= 450:
+                speakers_with_450_or_more += 1
 
             if npy_file_count == 0:
                 print(f"No .npy files found in {speaker_folder}.")
             else:
                 print(f"Number of .npy files in {speaker_folder}: {npy_file_count}")
 
-    # Output the number of speakers with 150 or more .npy files
+    # Output the number of speakers for each threshold
     print(f"Number of speakers with 150 or more .npy files: {speakers_with_150_or_more}")
+    print(f"Number of speakers with 200 or more .npy files: {speakers_with_200_or_more}")
+    print(f"Number of speakers with 250 or more .npy files: {speakers_with_250_or_more}")
+    print(f"Number of speakers with 300 or more .npy files: {speakers_with_300_or_more}")
+    print(f"Number of speakers with 350 or more .npy files: {speakers_with_350_or_more}")
+    print(f"Number of speakers with 400 or more .npy files: {speakers_with_400_or_more}")
+    print(f"Number of speakers with 450 or more .npy files: {speakers_with_450_or_more}")
 
     # Print final number of speaker folders
     final_speaker_count = sum(1 for _ in os.listdir(root_dir) if os.path.isdir(os.path.join(root_dir, _)))
@@ -58,4 +76,4 @@ def check_npy_file_counts_and_plot_histogram(root_dir: str, target_dir: str):
     plt.show()
 
 # Usage
-check_npy_file_counts_and_plot_histogram("D:\\encoder", "D:\\npy_under150")
+check_npy_file_counts_and_plot_histogram("D:\\encoder")

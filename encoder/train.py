@@ -109,7 +109,8 @@ def train(run_id: str, clean_data_root: Path, validation_data_root: Path, models
     total_steps = len(train_loader)  # 총 스텝 수
     patience = 7  # 조기 종료를 위한 허용 스텝 수
     num_bad_epochs = 0  # 조기 종료 카운터
-    best_eer = float('inf')  # 최고의 EER 초기화
+    # best_eer = float('inf')  # 최고의 EER 초기화
+    best_loss = float('inf')  # 최고의 Loss 초기화
 
     with tqdm(total=total_steps, desc="Training Progress", unit="step" ,initial=init_step - 1) as pbar:
         start_time = time.time()  # 학습 시작 시간 기록
@@ -189,11 +190,17 @@ def train(run_id: str, clean_data_root: Path, validation_data_root: Path, models
                 print(f"Validation Loss: {val_loss}, Validation EER: {val_eer}")
 
                 # 조기 종료 체크
-                if val_eer < best_eer:
-                    best_eer = val_eer
+                if val_loss < best_loss:
+                    best_loss = val_loss
                     num_bad_epochs = 0  # 성능이 향상되면 카운터 초기화
                 else:
                     num_bad_epochs += 1
+                
+                # if val_eer < best_eer:
+                #     best_eer = val_eer
+                #     num_bad_epochs = 0  # 성능이 향상되면 카운터 초기화
+                # else:
+                #     num_bad_epochs += 1
 
                 if num_bad_epochs >= patience:
                     print("Early stopping triggered.")
