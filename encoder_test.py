@@ -81,7 +81,7 @@ if __name__=="__main__":
         init_step = checkpoint["step"]
         print(f"init_step: {init_step}")
         # print(f'pretrained의 state_dict key : {checkpoint["model_state"].keys()}')
-        model.load_state_dict(checkpoint["model_state"])
+        model.load_state_dict(checkpoint["model_state"], strict=False)
         # model의 state_dict의 모든 키를 출력하여 확인
         print(f"model의 state_dict 키들: {model.state_dict().keys()}")
         # 존재하는 파라미터 중 하나를 출력

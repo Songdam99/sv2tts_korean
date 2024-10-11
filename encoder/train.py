@@ -203,6 +203,13 @@ def train(run_id: str, clean_data_root: Path, validation_data_root: Path, models
                 if val_eer < best_eer:
                     best_eer = val_eer
                     num_bad_epochs = 0  # 성능이 향상되면 카운터 초기화
+                    print("Saving the best model (step %d)" % step)
+                    best_state_fpath=models_dir.joinpath(run_id + "_best.pt")
+                    torch.save({
+                        "step": step + 1,
+                        "model_state": model.state_dict(),
+                        "optimizer_state": optimizer.state_dict(),
+                    }, best_state_fpath)
                 else:
                     num_bad_epochs += 1
 

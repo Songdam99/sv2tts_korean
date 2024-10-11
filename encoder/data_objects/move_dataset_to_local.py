@@ -2,7 +2,7 @@ import os
 import numpy as np
 import shutil
 
-def copy_npy_files_with_minimum(root_dir: str, target_dir: str, min_files: int = 600, num_files: int = 150, start_index: int = 450):
+def copy_npy_files_with_minimum(root_dir: str, target_dir: str, min_files: int = 10, num_files: int = 10, start_index: int = 0):
     if not os.path.isdir(root_dir):
         print(f"Directory does not exist: {root_dir}")
         return
@@ -45,4 +45,4 @@ def copy_npy_files_with_minimum(root_dir: str, target_dir: str, min_files: int =
     print("File copying completed.")
 
 # Usage
-copy_npy_files_with_minimum("D:\\encoder", "C:\\Users\\s_jinwoo0302\\Desktop\\validation2_npy150")
+copy_npy_files_with_minimum("D:\\npy_under150", "C:\\Users\\s_jinwoo0302\\Desktop\\test_npy10")
