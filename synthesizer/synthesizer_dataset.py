@@ -37,7 +37,7 @@ class SynthesizerDataset(Dataset):
         # Load the embed
         embed = np.load(embed_path)
 
-        print(self.samples_texts[index])
+        # print(self.samples_texts[index])
 
         # Get the text and clean it
         text = text_to_sequence(self.samples_texts[index], self.hparams.tts_cleaner_names)

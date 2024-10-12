@@ -11,7 +11,7 @@ skip_existing = False
 def make_alignment(speaker_dir, skip_existing):
     alignment_path = speaker_dir / "alignment.txt"
     alignment_path.touch(exist_ok=True)
-
+    dummy=1
     txt_paths = list(speaker_dir.glob("*.txt"))
 
     existing_basenames = set()
