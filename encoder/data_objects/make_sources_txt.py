@@ -25,4 +25,4 @@ def main(root_directory: str):
         print(f"Progress: {idx}/{total_speakers} ({(idx / total_speakers) * 100:.2f}%)")
 
 if __name__ == "__main__":
-    main("C:\\Users\\s_jinwoo0302\\Desktop\\validation2_npy150")  # Update with your specific path
+    main("C:\\Users\\s_jinwoo0302\\Desktop\\test_npy10")  # Update with your specific path
