@@ -34,8 +34,7 @@ recognized_datasets = [
     # "VoxCeleb2/dev/aac",
     # "VoxCeleb2/test/aac",
     # "VCTK-Corpus/wav48",
-    "hee",
-    "jinwoo"
+    "KSponSpeech/KsponSpeech_01"
 ]
 
 #Maximum of generated wavs to keep on memory
@@ -43,6 +42,8 @@ MAX_WAVES = 15
 
 class Toolbox:
     def __init__(self, datasets_root, enc_models_dir, syn_models_dir, voc_models_dir, seed, no_mp3_support):
+        print("실행")
+        
         if not no_mp3_support:
             try:
                 librosa.load("samples/6829_00000.mp3")
