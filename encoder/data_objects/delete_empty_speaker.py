@@ -1,38 +1,38 @@
 import os
 import shutil
 
-def find_empty_npy_folders(root_folder):
-    empty_folders = []
-    
-    # Walk through the immediate subdirectories of the root folder
-    for dirpath, dirnames, filenames in os.walk(root_folder):
-        # Only consider the immediate subdirectories
-        if dirpath == root_folder:
-            for dirname in dirnames:
-                subfolder_path = os.path.join(dirpath, dirname)
-                # Check if .npy files are present
-                if not any(filename.endswith('.npy') for filename in os.listdir(subfolder_path)):
-                    empty_folders.append(subfolder_path)
-    
-    return empty_folders
+def move_npy_files(train_folder, validation_folder, npy_count_to_move=10):
+    # Ensure validation folder exists
+    os.makedirs(validation_folder, exist_ok=True)
 
-def delete_folders(folders):
-    for folder in folders:
-        # Delete the empty folder
-        shutil.rmtree(folder)
-        print(f"Deleted folder: {folder}")
+    for dirpath, dirnames, filenames in os.walk(train_folder):
+        # Iterate over each speaker subfolder
+        for dirname in dirnames:
+            train_subfolder_path = os.path.join(dirpath, dirname)
+            validation_subfolder_path = os.path.join(validation_folder, dirname)
+            
+            # Create the corresponding validation subfolder if it doesn't exist
+            os.makedirs(validation_subfolder_path, exist_ok=True)
+
+            # List all .npy files in the current subfolder
+            npy_files = [f for f in os.listdir(train_subfolder_path) if f.endswith('.npy')]
+
+            # If there are enough .npy files, move the specified number
+            if len(npy_files) >= npy_count_to_move:
+                files_to_move = npy_files[:npy_count_to_move]  # Get the first 10 .npy files
+
+                # Move each selected .npy file
+                for file in files_to_move:
+                    src_file = os.path.join(train_subfolder_path, file)
+                    dst_file = os.path.join(validation_subfolder_path, file)
+                    shutil.move(src_file, dst_file)
+                    print(f"Moved {src_file} to {dst_file}")
+            else:
+                print(f"Not enough .npy files in {train_subfolder_path}. Skipping this folder.")
 
 # 경로를 여기에 입력하세요.
-root_folder_path = r"D:\encoder"  # 예: D:\encoder
-empty_npy_folders = find_empty_npy_folders(root_folder_path)
+train_folder_path = r"C:\Users\admin\Desktop\Korean_dataset_train"
+validation_folder_path = r"C:\Users\admin\Desktop\Korean_dataset_validation"
 
-# 삭제할 폴더 목록 출력
-if empty_npy_folders:
-    print("Empty folders found:")
-    for folder in empty_npy_folders:
-        print(folder)
-
-    # 삭제 수행
-    delete_folders(empty_npy_folders)
-else:
-    print("No empty folders found.")
+# npy 파일 10개씩 옮기기
+move_npy_files(train_folder_path, validation_folder_path, npy_count_to_move=10)
