@@ -2,7 +2,8 @@ from synthesizer.hparams import hparams
 from synthesizer.train import train
 from utils.argutils import print_args
 import argparse
-
+import wandb
+import time
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -30,6 +31,16 @@ if __name__ == "__main__":
     print_args(args, parser)
 
     args.hparams = hparams.parse(args.hparams)
+
+
+    wandb.login(key='392761bb11c106263e70dde71f1875f69c63f0af')
+    wandb.init(project='Narrify')
+    now = time.localtime()
+    formatted_time = time.strftime('%Y%m%d_%H%M%S', now)
+    model_name = f"SV2TTS synthesizer training b=32, patience=7"
+    wandb.run.name = f'{model_name}_' + formatted_time
+    wandb.config.update(args)
+
 
     # Run the training
     train(**vars(args))

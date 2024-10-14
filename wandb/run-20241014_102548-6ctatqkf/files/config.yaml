@@ -1,0 +1,89 @@
+_wandb:
+    value:
+        cli_version: 0.18.3
+        m: []
+        python_version: 3.9.20
+        t:
+            "1":
+                - 1
+                - 5
+                - 53
+                - 55
+            "2":
+                - 1
+                - 5
+                - 53
+                - 55
+            "3":
+                - 17
+                - 23
+                - 55
+                - 61
+            "4": 3.9.20
+            "5": 0.18.3
+            "8":
+                - 3
+                - 5
+            "12": 0.18.3
+            "13": windows-amd64
+backup_every:
+    value: 10
+force_restart:
+    value: false
+hparams:
+    value: |-
+        {'allow_clipping_in_normalization': True,
+         'clip_mels_length': True,
+         'fmax': 7600,
+         'fmin': 55,
+         'griffin_lim_iters': 60,
+         'hop_size': 200,
+         'max_abs_value': 4.0,
+         'max_mel_frames': 900,
+         'min_level_db': -100,
+         'n_fft': 800,
+         'num_mels': 80,
+         'power': 1.5,
+         'preemphasis': 0.97,
+         'preemphasize': True,
+         'ref_level_db': 20,
+         'rescale': True,
+         'rescaling_max': 0.9,
+         'sample_rate': 16000,
+         'signal_normalization': True,
+         'silence_min_duration_split': 0.4,
+         'speaker_embedding_size': 256,
+         'symmetric_mels': True,
+         'synthesis_batch_size': 16,
+         'trim_silence': True,
+         'tts_cleaner_names': ['korean_cleaners'],
+         'tts_clip_grad_norm': 1.0,
+         'tts_decoder_dims': 128,
+         'tts_dropout': 0.5,
+         'tts_embed_dims': 512,
+         'tts_encoder_K': 5,
+         'tts_encoder_dims': 256,
+         'tts_eval_interval': -1,
+         'tts_eval_num_samples': 1,
+         'tts_lstm_dims': 1024,
+         'tts_num_highways': 4,
+         'tts_postnet_K': 5,
+         'tts_postnet_dims': 512,
+         'tts_schedule': [(2, 0.001, 20000, 32),
+                          (2, 0.0005, 40000, 32),
+                          (2, 0.0002, 80000, 32),
+                          (2, 0.0001, 160000, 32),
+                          (2, 3e-05, 320000, 32),
+                          (2, 1e-05, 640000, 32)],
+         'tts_stop_threshold': -3.4,
+         'use_lws': False,
+         'utterance_min_duration': 1.6,
+         'win_size': 800}
+models_dir:
+    value: synthesizer/saved_models/
+run_id:
+    value: synthesizer_second
+save_every:
+    value: 1000
+syn_dir:
+    value: C:\Users\admin\Desktop\Narrify_data\using_transfer_learning_best_encoder\synthesizer
