@@ -25,9 +25,9 @@ class SpeakerEncoder(nn.Module):
         
         
         # Cosine similarity scaling (with fixed initial parameter values)
-        self.similarity_weight = nn.Parameter(torch.tensor([10.])).to(loss_device)
+        self.similarity_weight = nn.Parameter(torch.tensor([10.]).to(loss_device))
         self.similarity_weight.retain_grad()  # Add this line        
-        self.similarity_bias = nn.Parameter(torch.tensor([-5.])).to(loss_device)
+        self.similarity_bias = nn.Parameter(torch.tensor([-5.]).to(loss_device))
         self.similarity_bias.retain_grad()  # 여기에서 수정합니다.
 
         # Loss

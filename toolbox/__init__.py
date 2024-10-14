@@ -14,26 +14,27 @@ from audioread.exceptions import NoBackendError
 
 # Use this directory structure for your datasets, or modify it to fit your needs
 recognized_datasets = [
-    "LibriSpeech/dev-clean",
-    "LibriSpeech/dev-other",
-    "LibriSpeech/test-clean",
-    "LibriSpeech/test-other",
-    "LibriSpeech/train-clean-100",
-    "LibriSpeech/train-clean-360",
-    "LibriSpeech/train-other-500",
-    "LibriTTS/dev-clean",
-    "LibriTTS/dev-other",
-    "LibriTTS/test-clean",
-    "LibriTTS/test-other",
-    "LibriTTS/train-clean-100",
-    "LibriTTS/train-clean-360",
-    "LibriTTS/train-other-500",
-    "LJSpeech-1.1",
-    "VoxCeleb1/wav",
-    "VoxCeleb1/test_wav",
-    "VoxCeleb2/dev/aac",
-    "VoxCeleb2/test/aac",
-    "VCTK-Corpus/wav48",
+    # "LibriSpeech/dev-clean",
+    # "LibriSpeech/dev-other",
+    # "LibriSpeech/test-clean",
+    # "LibriSpeech/test-other",
+    # "LibriSpeech/train-clean-100",
+    # "LibriSpeech/train-clean-360",
+    # "LibriSpeech/train-other-500",
+    # "LibriTTS/dev-clean",
+    # "LibriTTS/dev-other",
+    # "LibriTTS/test-clean",
+    # "LibriTTS/test-other",
+    # "LibriTTS/train-clean-100",
+    # "LibriTTS/train-clean-360",
+    # "LibriTTS/train-other-500",
+    # "LJSpeech-1.1",
+    # "VoxCeleb1/wav",
+    # "VoxCeleb1/test_wav",
+    # "VoxCeleb2/dev/aac",
+    # "VoxCeleb2/test/aac",
+    # "VCTK-Corpus/wav48",
+    "KSponSpeech/KsponSpeech_01"
 ]
 
 #Maximum of generated wavs to keep on memory
@@ -41,6 +42,8 @@ MAX_WAVES = 15
 
 class Toolbox:
     def __init__(self, datasets_root, enc_models_dir, syn_models_dir, voc_models_dir, seed, no_mp3_support):
+        print("실행")
+        
         if not no_mp3_support:
             try:
                 librosa.load("samples/6829_00000.mp3")

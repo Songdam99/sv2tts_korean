@@ -66,7 +66,7 @@ def preprocess_speaker(speaker_dir, out_dir: Path, skip_existing: bool, hparams)
 
     for file in files:
         if file.endswith("alignment.txt"):
-            with open(os.path.join(speaker_dir, file), "r", encoding='cp949') as alignments_file:
+            with open(os.path.join(speaker_dir, file), "r", encoding='utf-8') as alignments_file:
                 alignments = [line.rstrip().split(" ") for line in alignments_file.readlines()]
     # # except StopIteration:
     # #     # A few alignment files will be missing

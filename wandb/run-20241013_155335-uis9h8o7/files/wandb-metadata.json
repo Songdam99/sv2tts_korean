@@ -1,0 +1,56 @@
+{
+  "os": "Windows-10-10.0.22631-SP0",
+  "python": "3.9.20",
+  "startedAt": "2024-10-13T06:53:35.395595Z",
+  "args": [
+    "transfer_learning",
+    "C:\\Users\\admin\\Desktop\\Korean_dataset_train",
+    "C:\\Users\\admin\\Desktop\\Korean_dataset_train",
+    "--vis_every",
+    "1000",
+    "--umap_every",
+    "1000",
+    "--save_every",
+    "7500",
+    "--backup_every",
+    "7500"
+  ],
+  "program": "C:\\Users\\admin\\Desktop\\sv2tts_korean\\encoder_train.py",
+  "codePath": "encoder_train.py",
+  "git": {
+    "remote": "https://github.com/Songdam99/sv2tts_korean.git",
+    "commit": "a824089ae792a62e4f68f71ee0e83b3c22f134c3"
+  },
+  "email": "jung.jinwoo0302@gmail.com",
+  "root": "C:\\Users\\admin\\Desktop\\sv2tts_korean",
+  "host": "DESKTOP-QOOUFN7",
+  "username": "admin",
+  "executable": "C:\\Users\\admin\\miniconda3\\envs\\py3.9\\python.exe",
+  "codePathLocal": "encoder_train.py",
+  "cpu_count": 16,
+  "cpu_count_logical": 24,
+  "gpu": "[NVIDIA GeForce RTX 4070]",
+  "gpu_count": 1,
+  "disk": {
+    "/": {
+      "total": "999543533568",
+      "used": "189385699328"
+    }
+  },
+  "memory": {
+    "total": "16884232192"
+  },
+  "cpu": {
+    "count": 16,
+    "countLogical": 24
+  },
+  "gpu_nvidia": [
+    {
+      "name": "NVIDIA GeForce RTX 4070",
+      "memoryTotal": "12878610432",
+      "cudaCores": 5888,
+      "architecture": "Ada"
+    }
+  ],
+  "cudaVersion": "12.5"
+}

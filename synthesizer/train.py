@@ -15,6 +15,7 @@ import numpy as np
 from pathlib import Path
 import sys
 import time
+import wandb
 import dill
 ##
 
@@ -54,6 +55,11 @@ def train(run_id: str, syn_dir: str, models_dir: str, save_every: int,
     step = 0
     time_window = ValueWindow(100)
     loss_window = ValueWindow(100)
+
+    # Early stopping parameters
+    best_loss = float('inf')
+    patience_counter = 0
+    patience_limit = 7  # 조기 종료를 위한 patience 설정
     
     
     # From WaveRNN/train_tacotron.py
@@ -148,8 +154,8 @@ def train(run_id: str, syn_dir: str, models_dir: str, save_every: int,
 
         data_loader = DataLoader(dataset, collate_fn=lambda batch: collate_synthesizer(batch, r, hparams),
                                  batch_size=batch_size,
-                                #num_workers=0, 
-                                 num_wokrers=2, ## cannot use multiprocessing in Windows
+                                 num_workers=0, 
+                                #  num_wokrers=2, ## cannot use multiprocessing in Windows
                                  shuffle=True,
                                  pin_memory=True)
 
@@ -209,6 +215,25 @@ def train(run_id: str, syn_dir: str, models_dir: str, save_every: int,
                 if backup_every != 0 and step % backup_every == 0 : 
                     backup_fpath = Path("{}/{}_{}k.pt".format(str(weights_fpath.parent), run_id, k))
                     model.save(backup_fpath, optimizer)
+                    
+
+                    # 조기 종료 검사를 여기에서 수행
+                    train_loss = loss_window.average  # 원래는 validation loss를 사용해야 함.
+                    wandb.log({'train_loss': train_loss}, step=step)
+                    if train_loss < best_loss:
+                        best_loss = train_loss
+                        patience_counter = 0  # 손실이 개선되었으므로 patience 초기화
+                        # 베스트 모델 저장
+                        best_model_fpath = Path("{}/{}_best_model.pt".format(str(weights_fpath.parent), run_id))
+                        model.save(best_model_fpath, optimizer)
+                        print(f"New best model saved with loss {best_loss} at step {step}")
+                    else:
+                        patience_counter += 1
+                        print(f"No improvement for {patience_counter} validations")
+
+                    if patience_counter >= patience_limit:
+                        print("Early stopping triggered. Exiting training...")
+                        return  # 조기 종료
 
                 if save_every != 0 and step % save_every == 0 : 
                     # Must save latest optimizer state to ensure that resuming training

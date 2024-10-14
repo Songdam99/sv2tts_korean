@@ -83,6 +83,7 @@ class UpsampleNetwork(nn.Module):
         for f in self.up_layers: m = f(m)
         m = m.squeeze(1)[:, :, self.indent:-self.indent]
         return m.transpose(1, 2), aux.transpose(1, 2)
+    
 
 
 class WaveRNN(nn.Module):

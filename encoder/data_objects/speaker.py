@@ -6,7 +6,7 @@ import random
 
 # Contains the set of utterances of a single speaker
 class Speaker:
-    def __init__(self, root: Path, sight_range=200):
+    def __init__(self, root: Path, sight_range=450):
         self.root = root
         self.name = root.name
         self.utterances = None
@@ -76,3 +76,4 @@ class Speaker:
         a = [(u,) + u.random_partial(n_frames) for u in utterances]
 
         return a
+
