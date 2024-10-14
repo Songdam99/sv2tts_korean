@@ -31,10 +31,10 @@ def preprocess_wav(fpath_or_wav: Union[str, Path, np.ndarray],
     hyperparameters. If passing a filepath, the sampling rate will be automatically detected and 
     this argument will be ignored.
     """
-    # PCM preprocess
-    if str(fpath_or_wav)[-4:]=='.pcm':
-        with open(fpath_or_wav, 'rb') as f:
-            pcm_data = np.frombuffer(f.read(), dtype=np.int16)
+    # # PCM preprocess
+    # if str(fpath_or_wav)[-4:]=='.pcm':
+    #     with open(fpath_or_wav, 'rb') as f:
+    #         pcm_data = np.frombuffer(f.read(), dtype=np.int16)
     
     # Load the wav from disk if needed
     if isinstance(fpath_or_wav, str) or isinstance(fpath_or_wav, Path):
