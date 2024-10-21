@@ -4,19 +4,24 @@ from torch import optim
 from torch.utils.data import DataLoader
 from synthesizer import audio
 from synthesizer.models.tacotron import Tacotron
-from synthesizer.synthesizer_dataset import SynthesizerDataset, collate_synthesizer
+from synthesizer.synthesizer_dataset import SynthesizerDataset, SynthesizerValidationDataset, collate_synthesizer
 from synthesizer.utils import ValueWindow, data_parallel_workaround
 from synthesizer.utils.plot import plot_spectrogram
 from synthesizer.utils.symbols import symbols
 from synthesizer.utils.text import sequence_to_text
+from synthesizer.hparams import hparams
+from synthesizer.utils.text import text_to_sequence
 from vocoder.display import *
 from datetime import datetime
 import numpy as np
 from pathlib import Path
 import sys
 import time
-import wandb
 import dill
+import random
+import wandb
+from tqdm import tqdm
+from torchinfo import summary
 ##
 
 
@@ -25,6 +30,160 @@ def np_now(x: torch.Tensor): return x.detach().cpu().numpy()
 
 def time_string():
     return datetime.now().strftime("%Y-%m-%d %H:%M")
+
+def synthesize_spectrograms(model, texts, embeds, device, return_alignments=False):
+        """
+        Synthesizes mel spectrograms from texts and speaker embeddings.
+
+        :param texts: a list of N text prompts to be synthesized
+        :param embeddings: a numpy array or list of speaker embeddings of shape (N, 256) 
+        :param return_alignments: if True, a matrix representing the alignments between the 
+        characters
+        and each decoder output step will be returned for each spectrogram
+        :return: a list of N melspectrograms as numpy arrays of shape (80, Mi), where Mi is the 
+        sequence length of spectrogram i, and possibly the alignments.
+        """
+        # Print some info about the model when it is loaded            
+        tts_k = model.get_step() // 1000
+
+        # simple_table([("Tacotron", str(tts_k) + "k"),
+        #             ("r", model.r)])
+
+        # Preprocess text inputs
+        inputs = [text_to_sequence(text.strip(), hparams.tts_cleaner_names) for text in texts]
+        if not isinstance(embeds, list):
+            embeds = [embeds]
+
+        # Batch inputs
+        batched_inputs = [inputs[i:i+hparams.synthesis_batch_size]
+                             for i in range(0, len(inputs), hparams.synthesis_batch_size)]
+        batched_embeds = [embeds[i:i+hparams.synthesis_batch_size]
+                             for i in range(0, len(embeds), hparams.synthesis_batch_size)]
+
+        def pad1d(x, max_len, pad_value=0):
+            return np.pad(x, (0, max_len - len(x)), mode="constant", constant_values=pad_value)
+        
+        specs = []
+        for i, batch in enumerate(batched_inputs, 1):
+            # print(f"\n| Generating {i}/{len(batched_inputs)}")
+
+            # Pad texts so they are all the same length
+            text_lens = [len(text) for text in batch]
+            max_text_len = max(text_lens)
+            chars = [pad1d(text, max_text_len) for text in batch]
+            chars = np.stack(chars)
+
+            # Stack speaker embeddings into 2D array for batch processing
+            speaker_embeds = np.stack(batched_embeds[i-1])
+
+            # Convert to tensor
+            chars = torch.tensor(chars).long().to(device)
+            speaker_embeddings = torch.tensor(speaker_embeds).float().to(device)
+            # Inference
+            _, mels, alignments = model.generate(chars, speaker_embeddings)
+            mels = mels.detach().cpu().numpy()
+            for m in mels:
+                # Trim silence from end of each spectrogram
+                while np.max(m[:, -1]) < hparams.tts_stop_threshold:
+                    temp = np.max(m[:, -1])
+                    m = m[:, :-1]
+                specs.append(m)
+        # print("\n\nDone.\n")
+        return (specs, alignments) if return_alignments else specs
+
+
+def validate(model, valid_metadata, valid_dataloader, device, mel_images_dir, num_save_mel_images):
+    running_loss = 0.0
+    model.eval()
+    pbar = tqdm(enumerate(valid_dataloader, 1), desc="validation phase")
+    with torch.no_grad():
+        for i, (texts, mels, embeds, idx) in pbar:
+            start_time = time.time()
+
+            # Generate stop tokens for training
+            stop = torch.ones(mels.shape[0], mels.shape[2])
+            for j, k in enumerate(idx):
+                stop[j, :int(valid_metadata[k][4])-1] = 0
+
+            texts = texts.to(device)
+            mels = mels.to(device)
+            embeds = embeds.to(device)
+            stop = stop.to(device)
+
+            # Forward pass
+            # Parallelize model onto GPUS using workaround due to python bug
+            if device.type == "cuda" and torch.cuda.device_count() > 1:
+                m1_hat, m2_hat, attention, stop_pred = data_parallel_workaround(model, texts,
+                                                                                mels, embeds)
+            else:
+                m1_hat, m2_hat, attention, stop_pred = model(texts, mels, embeds, mode='valid')
+
+            # Backward pass
+            m1_loss = F.mse_loss(m1_hat, mels) + F.l1_loss(m1_hat, mels)
+            m2_loss = F.mse_loss(m2_hat, mels)
+            stop_loss = F.binary_cross_entropy(stop_pred, stop)
+
+            loss = m1_loss + m2_loss + stop_loss
+            running_loss += loss.item()
+
+            # Update tqdm with the current valid loss
+            pbar.set_postfix(valid_loss=running_loss / (i + 1))
+    valid_loss = running_loss / len(valid_metadata)
+    
+    # 합성한 멜 스펙트로그램 저장
+    random.seed(42)
+    step = model.get_step()
+
+    dataloader_iter = iter(valid_dataloader)
+    batch = next(dataloader_iter)
+
+    _, mels, embeds, indices = batch
+    texts = "저희는 팀쿡이고 보이스 클로닝 인공지능을 활용한 커스텀 오디오북 제작 프로젝트를 합니다.".split("\n")
+    mels = mels.cpu().detach().numpy()
+    embeds = embeds.cpu().detach().numpy()  # (b_size, embed_dim)
+    indices = np.array(indices)
+    # num_save_mel_images = 1
+    # assert num_save_mel_images==1, "For now, only one mel spec generation is supported."
+
+    random_indices = np.random.choice(embeds.shape[0], num_save_mel_images, replace=False)
+    embeds = embeds[random_indices]   # (num_save_mel_images, embed_dim)
+    embeds = np.repeat(embeds, len(texts), axis=1)
+    print(f'embeds.shape: {embeds.shape}')
+    selected_mels = mels[random_indices]
+    selected_indices = indices[random_indices]
+
+    for i, embed in enumerate(embeds):
+        specs = synthesize_spectrograms(model, texts, embed, device)   # (80, mel_frames)를 원소로 num_save_mel_images개 갖는 리스트
+    
+        spec = np.concatenate(specs, axis=1)
+
+        plt.figure(figsize=(10, 4))
+        plt.imshow(spec.T, aspect='auto', origin='lower', cmap='viridis')  # 또는 다른 colormap 사용
+        plt.title(f'Mel Spectrogram Step {step} Sample {i}')
+        plt.xlabel('Time')
+        plt.ylabel('Frequency Bin')
+        plt.colorbar(format='%+2.0f dB')
+        
+        # 이미지 파일로 저장
+        mel_output_fpath = mel_images_dir.joinpath(f"step_{step}")
+        mel_output_fpath.mkdir(exist_ok=True)
+        mel_output_fpath = mel_output_fpath.joinpath(f"sample_{selected_indices[i]}.png")
+        plt.savefig(mel_output_fpath, bbox_inches='tight')
+        plt.close()
+
+        # ground truth mel 저장 (참고용)
+        plt.figure(figsize=(10, 4))
+        plt.imshow(selected_mels[i], aspect='auto', origin='lower', cmap='viridis')
+        plt.title(f'Mel Spectrogram Step {step} Sample {i}')
+        plt.xlabel('Time')
+        plt.ylabel('Frequency Bin')
+        plt.colorbar(format='%+2.0f dB')
+        mel_output_fpath = mel_output_fpath.parent.joinpath(f"sample_gt_{selected_indices[i]}.png")
+        plt.savefig(mel_output_fpath, bbox_inches='tight')
+        plt.close()
+
+    return valid_loss
+
 
 def train(run_id: str, syn_dir: str, models_dir: str, save_every: int,
          backup_every: int, force_restart:bool, hparams):
@@ -37,11 +196,13 @@ def train(run_id: str, syn_dir: str, models_dir: str, save_every: int,
     plot_dir = model_dir.joinpath("plots")
     wav_dir = model_dir.joinpath("wavs")
     mel_output_dir = model_dir.joinpath("mel-spectrograms")
+    mel_images_dir = model_dir.joinpath("mel-images")
     meta_folder = model_dir.joinpath("metas")
     model_dir.mkdir(exist_ok=True)
     plot_dir.mkdir(exist_ok=True)
     wav_dir.mkdir(exist_ok=True)
     mel_output_dir.mkdir(exist_ok=True)
+    mel_images_dir.mkdir(exist_ok=True)
     meta_folder.mkdir(exist_ok=True)
     
     weights_fpath = model_dir.joinpath(run_id).with_suffix(".pt")
@@ -55,11 +216,6 @@ def train(run_id: str, syn_dir: str, models_dir: str, save_every: int,
     step = 0
     time_window = ValueWindow(100)
     loss_window = ValueWindow(100)
-
-    # Early stopping parameters
-    best_loss = float('inf')
-    patience_counter = 0
-    patience_limit = 7  # 조기 종료를 위한 patience 설정
     
     
     # From WaveRNN/train_tacotron.py
@@ -90,6 +246,7 @@ def train(run_id: str, syn_dir: str, models_dir: str, save_every: int,
                      dropout=hparams.tts_dropout,
                      stop_threshold=hparams.tts_stop_threshold,
                      speaker_embedding_size=hparams.speaker_embedding_size).to(device)
+    max_text_len = len("저희는 팀쿡이고 보이스 클로닝 인공지능을 활용한 커스텀 오디오북 제작 프로젝트를 합니다.")
 
     # Initialize the optimizer
     optimizer = optim.Adam(model.parameters())
@@ -107,7 +264,6 @@ def train(run_id: str, syn_dir: str, models_dir: str, save_every: int,
                     symbol = "\\s"  # For visual purposes, swap space with \s
 
                 f.write("{}\n".format(symbol))
-
     else:
         print("\nLoading weights at %s" % weights_fpath)
         model.load(weights_fpath, optimizer)
@@ -118,10 +274,15 @@ def train(run_id: str, syn_dir: str, models_dir: str, save_every: int,
     mel_dir = syn_dir.joinpath("mels")
     embed_dir = syn_dir.joinpath("embeds")
     dataset = SynthesizerDataset(metadata_fpath, mel_dir, embed_dir, hparams)
-    test_loader = DataLoader(dataset,
-                             batch_size=1,
-                             shuffle=True,
+    valid_dataset = SynthesizerValidationDataset(metadata_fpath, mel_dir, embed_dir, hparams)
+    valid_dataloader = DataLoader(valid_dataset, collate_fn=lambda batch: collate_synthesizer(batch, r, hparams),
+                             batch_size=batch_size,
+                             num_workers=0,
+                             shuffle=False,
                              pin_memory=True)
+
+    best_valid_loss = float("inf")  # 최고 검증 손실 초기화
+    num_no_improvement = 0  # 개선되지 않은 횟수 초기화
 
     for i, session in enumerate(hparams.tts_schedule):
         current_step = model.get_step()
@@ -165,6 +326,7 @@ def train(run_id: str, syn_dir: str, models_dir: str, save_every: int,
 
         for epoch in range(1, epochs+1):
             for i, (texts, mels, embeds, idx) in enumerate(data_loader, 1):
+                model.train()
                 start_time = time.time()
 
                 # Generate stop tokens for training
@@ -191,6 +353,8 @@ def train(run_id: str, syn_dir: str, models_dir: str, save_every: int,
                 stop_loss = F.binary_cross_entropy(stop_pred, stop)
 
                 loss = m1_loss + m2_loss + stop_loss
+                
+                # wandb.log({"training_loss": loss.item()})
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -216,24 +380,24 @@ def train(run_id: str, syn_dir: str, models_dir: str, save_every: int,
                     backup_fpath = Path("{}/{}_{}k.pt".format(str(weights_fpath.parent), run_id, k))
                     model.save(backup_fpath, optimizer)
                     
+                    valid_loss = validate(model, valid_dataset.metadata, valid_dataloader, device, mel_images_dir, num_save_mel_images=5)
 
-                    # 조기 종료 검사를 여기에서 수행
-                    train_loss = loss_window.average  # 원래는 validation loss를 사용해야 함.
-                    wandb.log({'train_loss': train_loss}, step=step)
-                    if train_loss < best_loss:
-                        best_loss = train_loss
-                        patience_counter = 0  # 손실이 개선되었으므로 patience 초기화
-                        # 베스트 모델 저장
-                        best_model_fpath = Path("{}/{}_best_model.pt".format(str(weights_fpath.parent), run_id))
-                        model.save(best_model_fpath, optimizer)
-                        print(f"New best model saved with loss {best_loss} at step {step}")
+                    print(f'valid loss : {valid_loss:.3f}')
+                    # wandb.log({"validation_loss": valid_loss, "step": step})
+
+                    # 검증 손실이 개선되지 않는 경우 카운트
+                    if valid_loss < best_valid_loss:
+                        best_valid_loss = valid_loss
+                        num_no_improvement = 0  # 개선됨, 카운트 리셋
                     else:
-                        patience_counter += 1
-                        print(f"No improvement for {patience_counter} validations")
+                        num_no_improvement += 1  # 개선되지 않음, 카운트 증가
+                        print(f"validation loss is not improved. num_no_improvement: {num_no_improvement}")
 
-                    if patience_counter >= patience_limit:
-                        print("Early stopping triggered. Exiting training...")
-                        return  # 조기 종료
+                    # 7번 개선되지 않으면 훈련 종료
+                    if num_no_improvement >= 7:
+                        print("Validation loss has not improved for 7 consecutive checks. Stopping training.")
+                        # wandb.log({"training_status": "stopped"})
+                        return  # 훈련 종료
 
                 if save_every != 0 and step % save_every == 0 : 
                     # Must save latest optimizer state to ensure that resuming training
