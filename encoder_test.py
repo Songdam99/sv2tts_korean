@@ -61,7 +61,7 @@ if __name__=="__main__":
         utterances_per_speaker,
         num_workers=0,  # CPU 코어 수에 맞게 조정
     )
-    
+    print(f'len(test_dataset): {len(test_dataset)}')
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")    
     loss_device = torch.device("cuda") 
