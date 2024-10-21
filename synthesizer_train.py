@@ -33,13 +33,13 @@ if __name__ == "__main__":
     args.hparams = hparams.parse(args.hparams)
 
 
-    wandb.login(key='392761bb11c106263e70dde71f1875f69c63f0af')
-    wandb.init(project='Narrify')
+    # wandb.login(key='589be92db63ed69064f5caf812e58b88ea36405b')
+    # wandb.init(project='Narrify')
     now = time.localtime()
     formatted_time = time.strftime('%Y%m%d_%H%M%S', now)
-    model_name = f"SV2TTS synthesizer training b=32, patience=7"
-    wandb.run.name = f'{model_name}_' + formatted_time
-    wandb.config.update(args)
+    model_name = f"SV2TTS_synthesizer_training_post_alignment_fix_b=12_patience=7"
+    # wandb.run.name = f'{model_name}_' + formatted_time
+    # wandb.config.update(args)
 
 
     # Run the training

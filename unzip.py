@@ -4,13 +4,34 @@ from tqdm import tqdm
 from datetime import datetime
 from pathlib import Path
 
-# 압축 파일들이 있는 디렉토리 경로
-root = Path(r'D:/GraduateProject/AI 음성 데이터/131.다국어 통·번역 낭독체 데이터/01-1.정식개방데이터/Validation/02.라벨링데이터')
+# # 압축 파일들이 있는 디렉토리 경로
+# root = Path(r'D:/GraduateProject/AI 음성 데이터/131.다국어 통·번역 낭독체 데이터/01-1.정식개방데이터/Validation/02.라벨링데이터')
 
-# 압축 파일들을 순차적으로 압축 해제
-for zip_path in root.glob('*.zip'):
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        # 압축 해제할 경로를 지정 (현재 zip 파일과 동일한 디렉토리)
-        extract_path = zip_path.parent / zip_path.stem  # .zip 확장자 제외한 폴더명으로 압축 해제
-        zip_ref.extractall(extract_path)
-        print(f"Extracted {zip_path} to {extract_path}")
+# # 압축 파일들을 순차적으로 압축 해제
+# for zip_path in root.glob('*.zip'):
+#     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+#         # 압축 해제할 경로를 지정 (현재 zip 파일과 동일한 디렉토리)
+#         extract_path = zip_path.parent / zip_path.stem  # .zip 확장자 제외한 폴더명으로 압축 해제
+#         zip_ref.extractall(extract_path)
+#         print(f"Extracted {zip_path} to {extract_path}")
+
+import os
+from itertools import chain
+
+datasets_root = Path('C:/Users/admin/Desktop/Narrify_data/한국어 음성')
+dataset_root = datasets_root.joinpath("KSponSpeech")
+input_dirs = [dataset_root.joinpath("KsponSpeech_01"),
+dataset_root.joinpath("KsponSpeech_02"),
+dataset_root.joinpath("KsponSpeech_03"),
+dataset_root.joinpath("KsponSpeech_04"),
+dataset_root.joinpath("KsponSpeech_05")]
+
+# Preprocess the dataset
+speaker_dirs = list(chain.from_iterable(input_dir.glob("*") for input_dir in input_dirs))
+for speaker_dir in speaker_dirs:
+    alignment_path = speaker_dir.joinpath("alignment.txt")
+    if alignment_path.exists():
+        os.remove(alignment_path)
+        print(f"Deleted {alignment_path}")
+    else:
+        print(f"{alignment_path} does not exist.")

@@ -21,7 +21,7 @@ class Speaker:
             print(f"File not found: {sources_file_path}")
             return  # Exit the method if the file does not exist
         
-        with sources_file_path.open("r", encoding='utf-8') as sources_file:
+        with sources_file_path.open("r", encoding='cp949') as sources_file:
             sources = []
             for line in sources_file:
                 line = line.strip()

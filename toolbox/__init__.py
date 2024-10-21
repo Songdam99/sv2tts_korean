@@ -34,7 +34,9 @@ recognized_datasets = [
     # "VoxCeleb2/dev/aac",
     # "VoxCeleb2/test/aac",
     # "VCTK-Corpus/wav48",
-    "KSponSpeech/KsponSpeech_01"
+    "hee",
+    "samples",
+    "KSponSpeech"
 ]
 
 #Maximum of generated wavs to keep on memory
