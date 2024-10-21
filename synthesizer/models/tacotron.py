@@ -358,10 +358,11 @@ class Tacotron(nn.Module):
     def r(self, value):
         self.decoder.r = self.decoder.r.new_tensor(value, requires_grad=False)
 
-    def forward(self, x, m, speaker_embedding):
+    def forward(self, x, m, speaker_embedding, mode='train'):
         device = next(self.parameters()).device  # use same device as parameters
 
-        self.step += 1
+        if mode=='train':
+            self.step += 1
         batch_size, _, steps  = m.size()
 
         # Initialise all hidden states and pack into tuple
