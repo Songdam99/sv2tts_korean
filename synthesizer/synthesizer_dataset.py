@@ -4,7 +4,8 @@ import numpy as np
 from pathlib import Path
 from synthesizer.utils.text import text_to_sequence
 import nltk
-nltk.download('punkt')
+nltk.download('punkt_tab')
+import random
 ##
 
 class SynthesizerDataset(Dataset):
@@ -41,15 +42,68 @@ class SynthesizerDataset(Dataset):
 
         # Get the text and clean it
         text = text_to_sequence(self.samples_texts[index], self.hparams.tts_cleaner_names)
-        
+
         # Convert the list returned by text_to_sequence to a numpy array
         text = np.asarray(text).astype(np.int32)
-
+        
         return text, mel.astype(np.float32), embed.astype(np.float32), index
 
     def __len__(self):
         return len(self.samples_fpaths)
 
+
+class SynthesizerValidationDataset(Dataset):
+    def __init__(self, metadata_fpath: Path, mel_dir: Path, embed_dir: Path, hparams):
+        print("Using inputs from:\n\t%s\n\t%s\n\t%s" % (metadata_fpath, mel_dir, embed_dir))
+        
+        # metadata validation발화 일정한 seed로 랜덤추출
+        random.seed(42)
+
+        with metadata_fpath.open("r",encoding="cp949") as metadata_file:
+            metadata = [line.split("|") for line in metadata_file]
+        if len(metadata) > 150:
+            metadata = random.sample(metadata, 150)
+
+        mel_fnames = [x[1] for x in metadata if int(x[4])]
+        mel_fpaths = [mel_dir.joinpath(fname) for fname in mel_fnames]
+        embed_fnames = [x[2] for x in metadata if int(x[4])]
+        embed_fpaths = [embed_dir.joinpath(fname) for fname in embed_fnames]
+        self.samples_fpaths = list(zip(mel_fpaths, embed_fpaths))
+        self.samples_texts = [x[5].strip() for x in metadata if int(x[4])]
+        self.metadata = metadata
+        self.hparams = hparams
+        
+        print("Found %d samples" % len(self.samples_fpaths))
+    
+    def __getitem__(self, index):  
+        # Sometimes index may be a list of 2 (not sure why this happens)
+        # If that is the case, return a single item corresponding to first element in index
+        if index is list:
+            index = index[0]
+
+        mel_path, embed_path = self.samples_fpaths[index]
+        mel = np.load(mel_path).T.astype(np.float32)
+        
+        # Load the embed
+        embed = np.load(embed_path)
+
+        # print(self.samples_texts[index])
+
+        # Get the text and clean it
+        text = text_to_sequence(self.samples_texts[index], self.hparams.tts_cleaner_names)
+        
+        # Convert the list returned by text_to_sequence to a numpy array
+        text = np.asarray(text).astype(np.int32)
+
+        # 빈 배열인 경우 None 반환
+        if text.size == 0:
+            return None
+        
+        return text, mel.astype(np.float32), embed.astype(np.float32), index
+
+    def __len__(self):
+        return len(self.samples_fpaths)
+    
 
 def collate_synthesizer(batch, r, hparams):
     # Text
