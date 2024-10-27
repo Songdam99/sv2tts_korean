@@ -20,3 +20,4 @@ synthesizer/saved_models/*
 vocoder/saved_models/*
 
 wandb
+make_mel_spectrogram.ipynb
