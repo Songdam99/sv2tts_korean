@@ -26,9 +26,11 @@ def make_wav_format(pcm_data:bytes, ch:int) -> bytes:
         return b''.join(waves)
 
 # change the data_path!!
-data_path = Path("C:/Users/otulp/Desktop/GraduateProject/AI 음성 데이터/KSponSpeech/KsponSpeech_01")
+folder = 'KsponSpeech_05'
+data_path = Path(f"C:/Users/admin/Desktop/Narrify_data/한국어 음성/KSponSpeech/{folder}")
 speaker_dirs = list(data_path.glob("*"))
-target_dirs = [speaker_dir.parent / f"{speaker_dir.name}_wav" for speaker_dir in speaker_dirs]
+target_path = Path("C:/Users/admin/Desktop/Narrify_data/한국어 음성/KSponSpeech_wav")
+target_dirs = [target_path.joinpath(folder) / f"{speaker_dir.name}" for speaker_dir in speaker_dirs]
 
 for target_dir in target_dirs:
     target_dir.mkdir(parents=True, exist_ok=True)
@@ -42,3 +44,10 @@ for i, speaker_dir in enumerate(speaker_dirs):
         with open(wav_path, 'wb') as file:
             file.write(wav_bytes)
         print(f"Converted {source_pcm} to {wav_path}")
+
+# pcm_bytes = Path("C:/Users/admin/Desktop/Narrify_data/한국어 음성/KSponSpeech/KsponSpeech_03/KsponSpeech_0308/KsponSpeech_307562.pcm").read_bytes()
+# wav_bytes = make_wav_format(pcm_bytes, 1)
+# wav_path = "C:/Users/admin/Desktop/KsponSpeech_307562.wav"
+# with open(wav_path, 'wb') as file:
+#      file.write(wav_bytes)
+
