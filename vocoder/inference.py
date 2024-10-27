@@ -37,6 +37,7 @@ def load_model(weights_fpath, verbose=True):
     _model.load_state_dict(checkpoint['model_state'])
     _model.eval()
 
+    print("Loaded vocoder \"%s\" trained to step %d" % (weights_fpath.name, _model.state_dict()["step"]))
 
 def is_loaded():
     return _model is not None
