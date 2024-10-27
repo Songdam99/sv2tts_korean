@@ -83,10 +83,10 @@ def synthesize_spectrograms(model, texts, embeds, device, return_alignments=Fals
             _, mels, alignments = model.generate(chars, speaker_embeddings)
             mels = mels.detach().cpu().numpy()
             for m in mels:
-                # Trim silence from end of each spectrogram
-                while np.max(m[:, -1]) < hparams.tts_stop_threshold:
-                    temp = np.max(m[:, -1])
-                    m = m[:, :-1]
+                # # Trim silence from end of each spectrogram
+                # while np.max(m[:, -1]) < hparams.tts_stop_threshold:
+                #     temp = np.max(m[:, -1])
+                #     m = m[:, :-1]
                 specs.append(m)
         # print("\n\nDone.\n")
         return (specs, alignments) if return_alignments else specs
@@ -145,10 +145,10 @@ def validate(model, valid_metadata, valid_dataloader, device, mel_images_dir, nu
     # num_save_mel_images = 1
     # assert num_save_mel_images==1, "For now, only one mel spec generation is supported."
 
-    random_indices = np.random.choice(embeds.shape[0], num_save_mel_images, replace=False)
+    # random_indices = np.random.choice(embeds.shape[0], num_save_mel_images, replace=False)
+    random_indices = np.arange(num_save_mel_images)
     embeds = embeds[random_indices]   # (num_save_mel_images, embed_dim)
     embeds = np.repeat(embeds, len(texts), axis=1)
-    print(f'embeds.shape: {embeds.shape}')
     selected_mels = mels[random_indices]
     selected_indices = indices[random_indices]
 
@@ -246,7 +246,6 @@ def train(run_id: str, syn_dir: str, models_dir: str, save_every: int,
                      dropout=hparams.tts_dropout,
                      stop_threshold=hparams.tts_stop_threshold,
                      speaker_embedding_size=hparams.speaker_embedding_size).to(device)
-    max_text_len = len("저희는 팀쿡이고 보이스 클로닝 인공지능을 활용한 커스텀 오디오북 제작 프로젝트를 합니다.")
 
     # Initialize the optimizer
     optimizer = optim.Adam(model.parameters())
@@ -354,7 +353,7 @@ def train(run_id: str, syn_dir: str, models_dir: str, save_every: int,
 
                 loss = m1_loss + m2_loss + stop_loss
                 
-                # wandb.log({"training_loss": loss.item()})
+                wandb.log({"training_loss": loss.item()})
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -383,21 +382,21 @@ def train(run_id: str, syn_dir: str, models_dir: str, save_every: int,
                     valid_loss = validate(model, valid_dataset.metadata, valid_dataloader, device, mel_images_dir, num_save_mel_images=5)
 
                     print(f'valid loss : {valid_loss:.3f}')
-                    # wandb.log({"validation_loss": valid_loss, "step": step})
+                    wandb.log({"validation_loss": valid_loss, "step": step})
 
-                    # 검증 손실이 개선되지 않는 경우 카운트
-                    if valid_loss < best_valid_loss:
-                        best_valid_loss = valid_loss
-                        num_no_improvement = 0  # 개선됨, 카운트 리셋
-                    else:
-                        num_no_improvement += 1  # 개선되지 않음, 카운트 증가
-                        print(f"validation loss is not improved. num_no_improvement: {num_no_improvement}")
+                    # # 검증 손실이 개선되지 않는 경우 카운트
+                    # if valid_loss < best_valid_loss:
+                    #     best_valid_loss = valid_loss
+                    #     num_no_improvement = 0  # 개선됨, 카운트 리셋
+                    # else:
+                    #     num_no_improvement += 1  # 개선되지 않음, 카운트 증가
+                    #     print(f"validation loss is not improved. num_no_improvement: {num_no_improvement}")
 
-                    # 7번 개선되지 않으면 훈련 종료
-                    if num_no_improvement >= 7:
-                        print("Validation loss has not improved for 7 consecutive checks. Stopping training.")
-                        # wandb.log({"training_status": "stopped"})
-                        return  # 훈련 종료
+                    # # 7번 개선되지 않으면 훈련 종료
+                    # if num_no_improvement >= 7:
+                    #     print("Validation loss has not improved for 7 consecutive checks. Stopping training.")
+                    #     # wandb.log({"training_status": "stopped"})
+                    #     return  # 훈련 종료
 
                 if save_every != 0 and step % save_every == 0 : 
                     # Must save latest optimizer state to ensure that resuming training
