@@ -1,0 +1,3 @@
+models/synthesizer.pt
+models/vocoder.pt
+models/encoder.pt
