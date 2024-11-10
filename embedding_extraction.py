@@ -76,12 +76,14 @@ def denoise(wav, end_times, hparams):
 
 def check_file_type_and_change_to_wav(ref_path):
     file_type = os.path.basename(str(ref_path)).split('.')[-1]
-    if file_type == 'm4a':
-        audio = AudioSegment.from_file(ref_path, format="m4a")
+    def change_to_wav_type(ref_path, format):
+        audio = AudioSegment.from_file(ref_path, format=format)
         export_path = f"converted_{os.path.splitext(os.path.basename(ref_path))[0]}.wav" 
         audio.export(export_path, format="wav")
         wav, _ = librosa.load(export_path, sr=sr)
         return wav
+    if file_type in ['m4a', 'mp3', 'flac']:
+        wav = change_to_wav_type(ref_path, file_type)
     elif file_type == 'wav':
         wav, _ = librosa.load(ref_path, sr=sr)
     else:
