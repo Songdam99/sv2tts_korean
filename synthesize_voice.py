@@ -74,7 +74,6 @@ def main(text, hash, silence_duration_between_sentence=0.5):
 
     silent_wav = np.zeros(int(Synthesizer.sample_rate*silence_duration_between_sentence))
     result_wav = []
-    no_add_silence_wav = []
     for i, spec in enumerate(specs):
         print(texts[i], sentence_end_flag[i])
         wav = voc.infer_waveform(spec)
@@ -92,14 +91,10 @@ def main(text, hash, silence_duration_between_sentence=0.5):
         result_wav.append(wav)
         if sentence_end_flag[i]:
             result_wav.append(silent_wav)
-        no_add_silence_wav.append(wav)
     result_wav = np.concatenate(result_wav)
-    no_add_silence_wav = np.concatenate(no_add_silence_wav)
     
     output_path = Path(__file__).parent / 'synthesized_samples' / f'{splitted[0]}_{splitted[1]}.wav'
     save_audio(result_wav, Synthesizer.hparams.sample_rate, output_path)
-    output_path = Path(__file__).parent / 'synthesized_samples' / f'{splitted[0]}_{splitted[1]}_no_add_silence.wav'
-    save_audio(no_add_silence_wav, Synthesizer.hparams.sample_rate, output_path)
 
     return result_wav
 
