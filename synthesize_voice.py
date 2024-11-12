@@ -18,10 +18,11 @@ def split_text(text):
     sentences = re.split(r'(?<=[.?!])\s+', text.strip())
     result = []
     sentence_end_flag = []
+    final_char = []
     sentence_max_len = 50  # 한 문장의 최대 글자 수
-
+    chunks = []  # 분리된 덩어리들을 임시로 저장할 리스트
+    
     for sentence in sentences:
-        chunks = []  # 분리된 덩어리들을 임시로 저장할 리스트
 
         # 문장이 50자를 넘으면 나누기
         while len(sentence) > sentence_max_len:
@@ -29,21 +30,35 @@ def split_text(text):
             if split_point == -1:  # 공백이 없을 경우 그냥 최대 길이에서 자르기
                 split_point = sentence_max_len
             chunk = sentence[:split_point].strip()
+            final_char.append(chunk[-1])
+            if chunk[-1] in ['.', '?', '!']:
+                chunk = chunk[:-1]
             chunks.append(chunk)
             sentence = sentence[split_point:].strip()
 
         # 남은 문장을 마지막 덩어리에 추가
+        final_char.append(sentence[-1])
+        if sentence[-1] in ['.', '?', '!']:
+            sentence = sentence[:-1]
         chunks.append(sentence)
 
         # 마지막 덩어리가 3단어 미만이면 이전 덩어리와 합치기
         orig_len_chunks = len(chunks)
         if len(chunks) > 1 and len(chunks[-1].split()) < 3:
             chunks[orig_len_chunks - 2] += ' ' + chunks.pop(-1)
+            final_char=final_char[:-1]
 
-        # 분리된 덩어리들을 최종 결과에 추가
-        for i, chunk in enumerate(chunks):
-            result.append(chunk)
-            sentence_end_flag.append(chunk[-1] in ".?!" if i == len(chunks) - 1 else False)
+    # 분리된 덩어리들을 최종 결과에 추가
+    for i, (chunk, final_ch) in enumerate(zip(chunks, final_char)):
+        result.append(chunk)
+        if i == len(chunks)-1:
+            sentence_end_flag.append(False)
+        elif final_ch in ['.','!','?']:
+            sentence_end_flag.append(True)   
+        else:
+            sentence_end_flag.append(True)
+
+        # sentence_end_flag.append(final_ch in ['.','!','?'] if i != len(chunks) - 1 else False)
 
     return result, sentence_end_flag
 
