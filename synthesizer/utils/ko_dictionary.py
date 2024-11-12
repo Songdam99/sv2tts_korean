@@ -61,7 +61,7 @@ english_dictionary = {
         'X': '엑스',
         'SNS': '에스엔에스',
         'ability': '어빌리티',
-        'shy': '',
+        'shy': '샤이',
         'CCTV': '씨씨티비',
         'IT': '아이티',
         'the tenth man': '더 텐쓰 맨', ####
@@ -79,15 +79,15 @@ english_dictionary = {
         'CIA': '씨아이에이',
         'PBS': '피비에스',
         'D': '디',
-        'PPropertyPositionPowerPrisonP'
+        'PPropertyPositionPowerPrisonP': '',
         'S': '에스',
         'francisco': '프란시스코',
         'I': '아이',
-        'III': '아이아이', ######
+        'III': '아이아이아이', ######
         'No joke': '노 조크',
         'BBK': '비비케이',
         'LA': '엘에이',
-        'Don': '',
+        'Don': '돈',
         't worry be happy': ' 워리 비 해피',
         'NO': '엔오', #####
         'it was our sky': '잇 워즈 아워 스카이',
@@ -151,7 +151,7 @@ english_dictionary = {
         'Chaebol': '채벌',
         'BBC': '비비씨',
         'OECD': '오이씨디',
-        'BC': '삐씨',
+        'BC': '비씨',
         'C': '씨',
         'B': '비',
         'KY': '케이와이',
